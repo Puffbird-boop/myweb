@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>绒类 TOP10 链接 · 数据趋势看板</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;background:#f4f7f5;color:#1b2420;font-size:13px;line-height:1.5;padding:18px 22px 70px}
+:root{--green:#0E7A4A;--orange:#c0562e;--ink:#1b2420;--muted:#6d7c74;--line:#e2eae5;--grey:#c3cec8}
+.wrap{max-width:1400px;margin:0 auto}
+header{border-left:5px solid var(--green);padding:2px 0 2px 14px;margin-bottom:10px}
+h1{font-size:21px;font-weight:700;letter-spacing:.5px}
+.sub{color:var(--muted);font-size:12px;margin-top:3px}
+.caveat{background:#fff;border:1px solid var(--line);border-left:3px solid var(--orange);padding:8px 12px;font-size:11.5px;color:#5c6b63;margin:10px 0 18px;border-radius:3px}
+.caveat b{color:var(--orange)}
+section{margin-bottom:26px}
+h2{font-size:14.5px;font-weight:700;margin-bottom:2px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+h2 span.n{color:var(--green);font-size:12px;font-weight:600;letter-spacing:1px}
+h2 .tag{font-size:11.5px;font-weight:400;color:#8a978f}
+p.lead{color:var(--muted);font-size:12px;margin:3px 0 10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:14px 16px}
+.card.flush{padding:0;overflow:hidden}
+/* nav */
+.nav{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:12.5px;flex-wrap:wrap}
+.nav a{color:var(--green);text-decoration:none;cursor:pointer;border-bottom:1px dashed transparent}
+.nav a:hover{border-bottom-color:var(--green)}
+.nav .sep{color:#b3c0b8}
+.nav .cur{font-weight:700;color:#1b2420}
+.nav .back{display:none;background:#fff;border:1px solid var(--line);border-radius:3px;padding:4px 11px;font-size:12px;color:#4b5a52;cursor:pointer;font-family:inherit}
+.nav .back:hover{border-color:var(--green);color:var(--green)}
+.nav.detail .back{display:inline-block}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:10px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:4px;padding:10px 12px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .12s,box-shadow .12s}
+.kpi:hover{border-color:#bcd8c8;box-shadow:0 2px 8px rgba(14,122,74,.07)}
+.kpi.on{border-color:var(--green);box-shadow:0 0 0 1px var(--green) inset}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--grey)}
+.kpi.good:before{background:var(--green)}
+.kpi.bad:before{background:var(--orange)}
+.kpi .lab{font-size:11.5px;color:var(--muted);letter-spacing:.3px;display:flex;justify-content:space-between;gap:6px}
+.kpi .lab em{font-style:normal;color:#b3c0b8;font-size:10px}
+.kpi .val{font-size:20px;font-weight:700;margin:2px 0 1px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.kpi .val small{font-size:11.5px;font-weight:600;color:var(--muted);margin-left:2px}
+.kpi .cmp{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.kpi .cmp b{font-weight:700}
+.good{color:var(--green)}.bad{color:var(--orange)}.neutral{color:#5c6b63}.flat{color:#8a978f}
+/* toolbar */
+.tools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tools button{background:#fff;border:1px solid var(--line);color:#4b5a52;padding:5px 11px;font-size:12px;border-radius:3px;cursor:pointer;font-family:inherit}
+.tools button:hover{border-color:var(--green);color:var(--green)}
+.tools button.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.tools .div{width:1px;background:var(--line);margin:0 3px}
+/* chart */
+.chartbox{position:relative}
+.chartbox svg{display:block;width:100%;height:auto}
+.tip{position:absolute;pointer-events:none;background:#1f2b25;color:#fff;border-radius:4px;padding:7px 10px;font-size:11.5px;line-height:1.55;opacity:0;transition:opacity .1s;z-index:5;min-width:132px;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.tip .td{font-weight:700;margin-bottom:2px;color:#dfeee6}
+.tip .rw{display:flex;justify-content:space-between;gap:12px;font-variant-numeric:tabular-nums}
+.tip .rw i{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.empty{padding:40px;text-align:center;color:#9aa8a0;font-size:12px}
+/* table */
+table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+th{background:#1f2b25;color:#fff;font-weight:600;padding:7px 6px;text-align:center;white-space:nowrap;font-size:11.5px}
+td{padding:6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+td.l,th.l{text-align:left}
+tbody tr:hover>td{background:#fafcfb}
+.pname{font-weight:600}
+.pid{color:#9aa8a0;font-size:10.5px}
+.dd{font-size:10.5px;font-weight:600;display:block;margin-top:1px}
+/* clickable column header */
+th.mh{cursor:pointer;position:relative}
+th.mh:hover{background:#2c3c34}
+th.mh:after{content:"";position:absolute;left:28%;right:28%;bottom:4px;height:2px;background:#0E7A4A;border-radius:1px;opacity:0}
+th.mh.on{background:#0E7A4A}
+th.mh.on:after{opacity:1;background:#d8ece1}
+/* link list rows */
+.tr-link{cursor:pointer}
+.tr-link:hover td{background:#f4faf7}
+.tr-link .go{color:var(--green);font-weight:700}
+.sparkcell{padding:2px 6px}
+.sparkcell svg{display:block;width:74px;height:22px;margin:0 auto}
+.rank{display:inline-block;width:17px;height:17px;line-height:15px;border-radius:3px;background:#eef4f0;color:#4b5a52;font-size:10.5px;text-align:center;font-weight:600;border:1px solid #dde8e2}
+#linkTable{font-size:10.5px;min-width:0}
+#linkTable th{padding:6px 4px;font-size:10.5px}
+#linkTable td{padding:5px 4px}
+#linkTable .pid{font-size:9.5px}
+#linkTable .dd{font-size:10px}
+#linkTable .pname{font-size:11.5px}
+#linkTable .sparkcell svg{width:56px;height:20px}
+.scrollhint{font-size:10.5px;color:#a7b3ab;padding:6px 12px;text-align:right;border-top:1px solid var(--line)}
+/* 就地展开的单链接明细 */
+.inlineDetail{background:#fff;border:1px solid #cfe0d6;border-left:4px solid var(--green);border-radius:4px;padding:14px 16px 16px;margin-top:12px;box-shadow:0 2px 10px rgba(14,122,74,.06)}
+.ihead{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid var(--line);margin-bottom:6px;position:relative}
+.ihead .inm{font-size:16px;font-weight:700;color:#1b2420;padding-right:26px}
+.ihead .iid{color:#9aa8a0;font-size:11.5px;margin-top:2px;letter-spacing:.4px}
+.ihead .isum{font-size:11.5px;color:#54635b;text-align:right;line-height:1.7}
+.ihead .isum b{color:#1b2420}
+.iclose{position:absolute;right:0;top:0;background:#fff;border:1px solid var(--line);color:#7a8a82;width:24px;height:24px;line-height:20px;border-radius:3px;cursor:pointer;font-size:12px;font-family:inherit}
+.iclose:hover{border-color:var(--orange);color:var(--orange)}
+.iblock{margin-top:14px}
+.iblock h3{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;color:#1b2420}
+.iblock h3:before{content:"";width:3px;height:12px;background:var(--green);border-radius:1px;display:inline-block}
+.iblock .tag2{font-size:11px;font-weight:400;color:#8a978f}
+.lead2{color:var(--muted);font-size:11.5px;margin:0 0 8px}
+.tr-link.on td{background:#eef7f2!important}
+.tr-link.on .go{transform:rotate(90deg);display:inline-block}
+.imp textarea{width:100%;height:128px;border:1px solid var(--line);border-radius:3px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#2b3a33;resize:vertical;background:#fcfdfc}
+.imp input[type=date]{border:1px solid var(--line);border-radius:3px;padding:5px 9px;font-family:inherit;font-size:12px;background:#fff}
+.imp label{font-size:11.5px;color:var(--muted);display:block;margin-bottom:4px}
+.btn{background:var(--green);border:1px solid var(--green);color:#fff;padding:6px 14px;font-size:12px;border-radius:3px;cursor:pointer;font-family:inherit;font-weight:600}
+.btn.ghost{background:#fff;color:#4b5a52;border-color:var(--line);font-weight:400}
+.btn.ghost:hover{border-color:var(--green);color:var(--green)}
+.imp .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.hint{font-size:11px;color:#8a978f;line-height:1.65}
+.hint code{background:#eef4f0;padding:1px 4px;border-radius:2px;font-size:10.5px;color:#3d4d45}
+.status{font-size:11.5px;margin-top:6px}
+.note{font-size:11px;color:#8a978f;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1f2b25;color:#fff;padding:8px 16px;border-radius:4px;font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99}
+.toast.on{opacity:1}
+.dates{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.dates span{background:#eef4f0;color:#3d4d45;border-radius:10px;padding:2px 9px;font-size:11px;font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+@media(max-width:1200px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>绒类 TOP10 链接 · 数据趋势看板</h1>
+  <div class="sub">层级：链接整体数据 → 逐日数据 → 单指标趋势 · 单文件离线可用</div>
+  <div class="dates" id="dateChips"></div>
+</header>
+
+<div class="caveat">
+<b>口径说明：</b>10/26 区块为当日实测原数据，10/25 区块为 10/25 实测原数据，均为实盘值，不做环比反算。<b>费比 = 花费 ÷ 单品GMV</b>；<b>客单价 = 单品GMV ÷ 支付人数</b>（均标注为派生指标）；转化率 = 支付人数 ÷ 访客数，加购率 = 加购人数 ÷ 访客数；「成交数／成交金额」为付费成交。「单品搜索」为搜索次数口径，非访客。
+</div>
+
+<div class="nav" id="nav">
+  <span class="cur" id="navCur">全部 10 个链接</span>
+  <button class="back" id="navBack">‹ 收起链接明细</button>
+</div>
+
+<div id="viewOverview">
+
+<section>
+  <h2><span class="n">01</span>链接列表<span class="tag">每个链接的整体数据 · 点击行在下方就地展开逐日明细</span></h2>
+  <p class="lead" id="linkLead"></p>
+  <div class="tools" id="linkSortBtns">
+    <button data-sort="gmv" class="on">按单品GMV</button>
+    <button data-sort="spend">按花费</button>
+    <button data-sort="pgmv">按付费成交额</button>
+    <button data-sort="roi">按付费ROI</button>
+    <span class="div"></span>
+    <button id="linkCopy">复制链接总表</button>
+  </div>
+  <div class="card flush"><div style="overflow-x:auto"><table id="linkTable"></table></div></div>
+  <div class="scrollhint">点击表头任一指标 → 看全部链接在该指标上的逐日趋势；点击行 → 在下方就地展开该链接的逐日明细。</div>
+
+  <!-- 就地展开的单链接明细（不跳页） -->
+  <div id="inlineDetail" class="inlineDetail" hidden>
+    <div class="ihead">
+      <div>
+        <div class="inm" id="dName"></div>
+        <div class="iid" id="dMeta"></div>
+      </div>
+      <div class="isum" id="dSum"></div>
+      <button class="iclose" id="dClose" title="收起该链接明细">✕</button>
+    </div>
+
+    <div class="iblock">
+      <h3>该链接整体数据 <span class="tag2" id="dKpiNote"></span></h3>
+      <div class="kpis" id="dKpis"></div>
+    </div>
+    <div class="iblock">
+      <h3>该链接指标趋势 <span class="tag2" id="dChartTitle"></span></h3>
+      <p class="lead2">点指标按钮或下方每日数据表的表头切换；悬浮查看每日数值。</p>
+      <div class="tools" id="dMetricBtns"></div>
+      <div class="card"><div class="chartbox" id="dChart"></div></div>
+    </div>
+
+    <div class="iblock">
+      <h3>该链接每日数据 <span class="tag2">行＝日期 · 列＝指标 · 点表头看趋势</span></h3>
+      <p class="lead2">按日期倒序；每格下方为与前一日的环比。</p>
+      <div class="card flush"><div style="overflow-x:auto"><table id="dDayTable"></table></div></div>
+      <div class="tools" style="margin-top:8px"><button class="btn ghost" id="dCopy">复制该链接每日数据</button></div>
+    </div>
+  </div>
+
+  <div id="linkTrendWrap" hidden style="margin-top:14px">
+    <div class="card">
+      <h3 style="font-size:13px;font-weight:700;margin-bottom:2px;color:#1b2420">全部链接 · <span id="linkTrendName"></span> 逐日趋势</h3>
+      <p class="lead">同一指标横向对比各链接；点图下方色块可隐藏/显示单个链接。</p>
+      <div class="chartbox" id="linkTrendChart"></div>
+      <div class="chips" id="linkTrendChips"></div>
+      <div class="tools" style="margin:10px 0 0">
+        <button class="btn ghost" id="linkTrendAll">全选</button>
+        <button class="btn ghost" id="linkTrendClose">收起</button>
+      </div>
+    </div>
+  </div>
+  <div class="note">完整的付费成交数／付费成交额、客单价、单品搜索等指标，在展开的链接明细里查看。</div>
+</section>
+
+<section>
+  <h2><span class="n">02</span>数据接入<span class="tag">每天追加一天</span></h2>
+  <p class="lead">粘贴当天原表 17 列（可含表头）→ 选日期 → 加入；本页新增暂存本机浏览器，用「生成可粘贴数据块」可固化进文件。</p>
+  <div class="card imp">
+    <div style="display:grid;grid-template-columns:1.1fr .9fr;gap:16px">
+      <div>
+        <label>数据日期</label>
+        <input type="date" id="impDate">
+        <label style="margin-top:10px">从 Excel 复制 17 列原始数据（制表符分隔）</label>
+        <textarea id="impText" placeholder="主链接ID	命名	花费	CPC	付费ROI	付费加购成本	付费加购率	付费转化率	成交数	成交金额	单品GMV	单品搜索	支付人数	加购人数	访客数	转化率	加购率"></textarea>
+        <div class="row">
+          <button class="btn" id="impAdd">解析并加入</button>
+          <button class="btn ghost" id="impExport">生成可粘贴数据块</button>
+          <button class="btn ghost" id="impReset">清除本页新增</button>
+        </div>
+        <div class="status" id="impStatus"></div>
+      </div>
+      <div>
+        <div class="hint">
+          <b>列顺序（与源表「本期原数据」一致，共 17 列）：</b><br>
+          主链接ID、命名、花费、CPC、付费ROI、付费加购成本、付费加购率、付费转化率、成交数、成交金额、单品GMV、单品搜索、支付人数、加购人数、访客数、转化率、加购率
+          <br><br>
+          <b>比率列：</b>付费加购率、付费转化率、转化率、加购率 支持 <code>0.1814</code> 与 <code>18.14</code> 两种写法，自动识别。<br>
+          <b>缺失值：</b>留空或 <code>--</code> 均按缺失处理，不参与趋势连线。<br>
+          <b>同日重录：</b>覆盖该日，不重复累计。
+        </div>
+        <label style="margin-top:12px">可粘贴数据块（贴回 RAW_DAYS 数组）</label>
+        <textarea id="impOut" readonly style="height:96px;background:#f7faf8"></textarea>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /viewOverview -->
+
+<div class="note" style="text-align:center;color:#a7b3ab;margin-top:24px">数据源：10.26TOP10品数据.xlsx · 内置 10/25、10/26 两天 · 新增日期后全部视图自动重算</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   1) 链接字典
+   ========================================================= */
+const PRODUCTS = {
+  '744147141250' : ['库里梦-摩卡4【绒】主链',  '摩卡4-主链'],
+  '951732458364' : ['觅柚-白日梦提花毯',       '白日梦提花毯'],
+  '1087494116125': ['罗优-赫本4【绒】副链',    '赫本4-副链'],
+  '746318478735' : ['罗优-赫本4【绒】主链',    '赫本4-主链'],
+  '977969378950' : ['白书-波点兔毛4【绒】',    '波点兔毛4'],
+  '998190833334' : ['罗优-温莎4【绒】',        '温莎4'],
+  '778095871987' : ['罗优-赫本m',              '赫本m'],
+  '977212995721' : ['库里梦-摩卡4【绒】二链',  '摩卡4-二链'],
+  '746422129499' : ['罗优-赫本4【绒】新链',    '赫本4-新链'],
+  '826894791094' : ['觅柚-棋盘格M',            '棋盘格M']
+};
+const PORDER = Object.keys(PRODUCTS);
+
+/* =========================================================
+   2) 指标字典（16 项，含派生「费比」）
+      dir: 1=越高越好  -1=越低越好  0=中性
+   ========================================================= */
+const METRICS = [
+  {k:'gmv',    n:'单品GMV',     u:'元', d:0, kind:'money', dir: 1, g:'成交'},
+  {k:'pgmv',   n:'付费成交额',  u:'元', d:0, kind:'money', dir: 1, g:'成交'},
+  {k:'porders',n:'付费成交数',  u:'单', d:0, dir: 1, g:'成交'},
+  {k:'buyers', n:'支付人数',    u:'人', d:0, dir: 1, g:'成交'},
+  {k:'aov',    n:'客单价',      u:'元', d:1, kind:'money', dir: 1, g:'成交', derived: r => (r.buyers ? r.gmv/r.buyers : null)},
+  {k:'vis',    n:'访客数',      u:'人', d:0, dir: 0, g:'流量'},
+  {k:'search', n:'单品搜索',    u:'次', d:0, dir: 1, g:'流量'},
+  {k:'carts',  n:'加购人数',    u:'人', d:0, dir: 1, g:'流量'},
+  {k:'cvr',    n:'转化率',      u:'%',  d:2, dir: 1, g:'流量'},
+  {k:'cart',   n:'加购率',      u:'%',  d:2, dir: 1, g:'流量'},
+  {k:'spend',  n:'花费',        u:'元', d:0, kind:'money', dir: 0, g:'付费'},
+  {k:'fr',     n:'费比',        u:'%',  d:1, dir:-1, g:'付费', derived: r => (r.gmv ? r.spend/r.gmv*100 : null)},
+  {k:'cpc',    n:'CPC',         u:'元', d:2, kind:'money', dir:-1, g:'付费'},
+  {k:'roi',    n:'付费ROI',     u:'',   d:2, dir: 1, g:'付费'},
+  {k:'cpcost', n:'付费加购成本',u:'元', d:2, kind:'money', dir:-1, g:'付费'},
+  {k:'pcr',    n:'付费加购率',  u:'%',  d:2, dir: 1, g:'付费'},
+  {k:'pcvr',   n:'付费转化率',  u:'%',  d:2, dir: 1, g:'付费'}
+];
+const MB = {};
+METRICS.forEach(m => MB[m.k] = m);
+
+/* =========================================================
+   3) 内置数据：每天一块，逐日追加
+      spend 花费 / cpc / roi 付费ROI / cpcost 付费加购成本
+      pcr 付费加购率(%) / pcvr 付费转化率(%) / porders 付费成交数
+      pgmv 付费成交额 / gmv 单品GMV / search 单品搜索
+      buyers 支付人数 / carts 加购人数 / vis 访客数
+      cvr 转化率(%) / cart 加购率(%)   （费比、客单价为派生）
+   ========================================================= */
+const RAW_DAYS = [
+  { d:'2026-10-10', r:[
+    {id:'744147141250', spend:1142, cpc:1.57, roi:7.62, cpcost:9.68, pcr:16.21, pcvr:3.16, porders:23, pgmv:8703, gmv:12026, search:412, buyers:31, carts:162, vis:4078, cvr:0.76, cart:3.97},
+    {id:'951732458364', spend:964, cpc:1.47, roi:7.13, cpcost:11.21, pcr:13.15, pcvr:3.67, porders:24, pgmv:6877, gmv:8731, search:388, buyers:29, carts:99, vis:1122, cvr:2.58, cart:8.82},
+    {id:'1087494116125',spend:410, cpc:0.43, roi:3.12, cpcost:3.15, pcr:13.53, pcvr:0.42, porders:4, pgmv:1279, gmv:330, search:16, buyers:1, carts:116, vis:1143, cvr:0.09, cart:10.15},
+    {id:'746318478735', spend:157, cpc:1.21, roi:7.63, cpcost:5.61, pcr:21.54, pcvr:3.08, porders:4, pgmv:1198, gmv:2157, search:78, buyers:7, carts:52, vis:668, cvr:1.05, cart:7.78},
+    {id:'977969378950', spend:467, cpc:0.91, roi:9.71, cpcost:4.58, pcr:19.81, pcvr:2.72, porders:14, pgmv:4534, gmv:3834, search:196, buyers:11, carts:93, vis:852, cvr:1.29, cart:10.92},
+    {id:'998190833334', spend:65, cpc:0.94, roi:0.00, cpcost:10.83, pcr:8.70, pcvr:0.00, porders:0, pgmv:0, gmv:359, search:30, buyers:1, carts:5, vis:314, cvr:0.32, cart:1.59},
+    {id:'778095871987', spend:79, cpc:0.53, roi:7.37, cpcost:5.61, pcr:9.40, pcvr:2.01, porders:3, pgmv:579, gmv:1056, search:74, buyers:6, carts:19, vis:309, cvr:1.94, cart:6.15},
+    {id:'977212995721', spend:289, cpc:0.32, roi:1.31, cpcost:4.26, pcr:7.43, pcvr:0.11, porders:1, pgmv:380, gmv:0, search:3, buyers:0, carts:58, vis:913, cvr:0.00, cart:6.35},
+    {id:'746422129499', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:0, search:2, buyers:0, carts:4, vis:49, cvr:0.00, cart:8.16},
+    {id:'826894791094', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:400, search:34, buyers:2, carts:19, vis:1581, cvr:0.13, cart:1.20}
+  ]},
+  { d:'2026-10-11', r:[
+    {id:'744147141250', spend:1302, cpc:1.52, roi:5.36, cpcost:7.57, pcr:20.05, pcvr:2.21, porders:19, pgmv:6980, gmv:6356, search:314, buyers:17, carts:180, vis:3193, cvr:0.53, cart:5.64},
+    {id:'951732458364', spend:1037, cpc:1.44, roi:4.14, cpcost:11.53, pcr:12.47, pcvr:2.35, porders:17, pgmv:4291, gmv:4387, search:453, buyers:17, carts:108, vis:1233, cvr:1.38, cart:8.76},
+    {id:'1087494116125',spend:595, cpc:0.35, roi:0.55, cpcost:2.83, pcr:12.27, pcvr:0.06, porders:1, pgmv:330, gmv:0, search:5, buyers:0, carts:175, vis:3974, cvr:0.00, cart:4.40},
+    {id:'746318478735', spend:208, cpc:3.20, roi:8.55, cpcost:13.87, pcr:23.08, pcvr:7.69, porders:5, pgmv:1779, gmv:2547, search:69, buyers:8, carts:49, vis:413, cvr:1.94, cart:11.86},
+    {id:'977969378950', spend:444, cpc:0.48, roi:10.31, cpcost:2.50, pcr:19.33, pcvr:1.52, porders:14, pgmv:4582, gmv:2426, search:190, buyers:8, carts:146, vis:1408, cvr:0.57, cart:10.37},
+    {id:'998190833334', spend:65, cpc:2.17, roi:5.52, cpcost:32.50, pcr:6.67, pcvr:3.33, porders:1, pgmv:359, gmv:718, search:18, buyers:2, carts:14, vis:282, cvr:0.71, cart:4.96},
+    {id:'778095871987', spend:139, cpc:0.61, roi:5.14, cpcost:6.62, pcr:9.21, pcvr:1.75, porders:4, pgmv:715, gmv:1533, search:101, buyers:8, carts:26, vis:347, cvr:2.31, cart:7.49},
+    {id:'977212995721', spend:415, cpc:0.34, roi:0.72, cpcost:3.35, pcr:10.12, pcvr:0.08, porders:1, pgmv:299, gmv:380, search:5, buyers:1, carts:101, vis:1228, cvr:0.08, cart:8.22},
+    {id:'746422129499', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:330, search:11, buyers:1, carts:3, vis:75, cvr:1.33, cart:4.00},
+    {id:'826894791094', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:1339, search:21, buyers:4, carts:18, vis:1384, cvr:0.29, cart:1.30}
+  ]},
+  { d:'2026-10-12', r:[
+    {id:'744147141250', spend:1558, cpc:1.66, roi:5.55, cpcost:8.90, pcr:18.68, pcvr:2.56, porders:24, pgmv:8641, gmv:9626, search:334, buyers:24, carts:169, vis:2678, cvr:0.90, cart:6.31},
+    {id:'951732458364', spend:1140, cpc:1.12, roi:3.37, cpcost:10.46, pcr:10.72, pcvr:1.47, porders:15, pgmv:3845, gmv:4326, search:389, buyers:14, carts:109, vis:2102, cvr:0.67, cart:5.19},
+    {id:'1087494116125',spend:793, cpc:0.29, roi:0.64, cpcost:3.76, pcr:7.58, pcvr:0.07, porders:2, pgmv:509, gmv:959, search:10, buyers:3, carts:192, vis:10493, cvr:0.03, cart:1.83},
+    {id:'746318478735', spend:231, cpc:1.10, roi:8.21, cpcost:5.03, pcr:21.90, pcvr:2.86, porders:6, pgmv:1897, gmv:2454, search:102, buyers:8, carts:59, vis:566, cvr:1.41, cart:10.42},
+    {id:'977969378950', spend:600, cpc:0.72, roi:8.49, cpcost:4.92, pcr:14.63, pcvr:1.32, porders:11, pgmv:5094, gmv:4402, search:186, buyers:14, carts:115, vis:1256, cvr:1.11, cart:9.16},
+    {id:'998190833334', spend:65, cpc:1.35, roi:17.04, cpcost:7.22, pcr:18.75, pcvr:6.25, porders:3, pgmv:1107, gmv:1107, search:25, buyers:3, carts:15, vis:247, cvr:1.21, cart:6.07},
+    {id:'778095871987', spend:731, cpc:1.38, roi:2.28, cpcost:15.90, pcr:8.66, pcvr:1.69, porders:9, pgmv:1670, gmv:1889, search:189, buyers:11, carts:51, vis:1072, cvr:1.03, cart:4.76},
+    {id:'977212995721', spend:541, cpc:0.30, roi:1.20, cpcost:5.95, pcr:5.12, pcvr:0.11, porders:2, pgmv:649, gmv:380, search:11, buyers:1, carts:74, vis:1767, cvr:0.06, cart:4.19},
+    {id:'746422129499', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:0, search:4, buyers:0, carts:7, vis:121, cvr:0.00, cart:5.79},
+    {id:'826894791094', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:400, search:14, buyers:2, carts:13, vis:1293, cvr:0.15, cart:1.01}
+  ]},
+  { d:'2026-10-13', r:[
+    {id:'744147141250', spend:1575, cpc:1.78, roi:5.95, cpcost:9.10, pcr:19.53, pcvr:3.05, porders:27, pgmv:9373, gmv:8550, search:218, buyers:21, carts:192, vis:3489, cvr:0.60, cart:5.50},
+    {id:'951732458364', spend:1048, cpc:1.36, roi:3.43, cpcost:13.61, pcr:9.97, pcvr:1.81, porders:14, pgmv:3593, gmv:3581, search:349, buyers:12, carts:86, vis:1281, cvr:0.94, cart:6.71},
+    {id:'1087494116125',spend:921, cpc:0.30, roi:2.21, cpcost:3.66, pcr:8.11, pcvr:0.19, porders:6, pgmv:2037, gmv:330, search:17, buyers:1, carts:213, vis:9682, cvr:0.01, cart:2.20},
+    {id:'746318478735', spend:289, cpc:1.28, roi:8.10, cpcost:9.31, pcr:13.78, pcvr:3.11, porders:7, pgmv:2339, gmv:1979, search:94, buyers:5, carts:54, vis:606, cvr:0.83, cart:8.91},
+    {id:'977969378950', spend:422, cpc:0.56, roi:7.78, cpcost:3.04, pcr:18.53, pcvr:1.20, porders:9, pgmv:3285, gmv:1317, search:157, buyers:4, carts:113, vis:1034, cvr:0.39, cart:10.93},
+    {id:'998190833334', spend:65, cpc:0.80, roi:6.15, cpcost:5.42, pcr:14.81, pcvr:1.23, porders:1, pgmv:400, gmv:359, search:33, buyers:1, carts:19, vis:292, cvr:0.34, cart:6.51},
+    {id:'778095871987', spend:484, cpc:1.51, roi:3.29, cpcost:12.41, pcr:12.15, pcvr:3.12, porders:10, pgmv:1592, gmv:1474, search:105, buyers:7, carts:47, vis:934, cvr:0.75, cart:5.03},
+    {id:'977212995721', spend:396, cpc:0.34, roi:0.00, cpcost:5.21, pcr:6.45, pcvr:0.00, porders:0, pgmv:0, gmv:795, search:5, buyers:6, carts:67, vis:1163, cvr:0.52, cart:5.76},
+    {id:'746422129499', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:0, search:10, buyers:0, carts:6, vis:259, cvr:0.00, cart:2.32},
+    {id:'826894791094', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:380, search:25, buyers:1, carts:10, vis:1168, cvr:0.09, cart:0.86}
+  ]},
+  { d:'2026-10-14', r:[
+    {id:'744147141250', spend:999, cpc:2.07, roi:4.90, cpcost:10.09, pcr:20.50, pcvr:2.69, porders:13, pgmv:4898, gmv:5284, search:111, buyers:14, carts:141, vis:3083, cvr:0.45, cart:4.57},
+    {id:'951732458364', spend:511, cpc:1.69, roi:4.25, cpcost:10.88, pcr:15.56, pcvr:2.65, porders:8, pgmv:2173, gmv:1488, search:246, buyers:6, carts:63, vis:814, cvr:0.74, cart:7.74},
+    {id:'1087494116125',spend:684, cpc:0.33, roi:0.00, cpcost:4.75, pcr:6.97, pcvr:0.00, porders:0, pgmv:0, gmv:0, search:17, buyers:0, carts:128, vis:6977, cvr:0.00, cart:1.83},
+    {id:'746318478735', spend:146, cpc:1.26, roi:4.53, cpcost:6.62, pcr:18.97, pcvr:1.72, porders:2, pgmv:660, gmv:1290, search:85, buyers:4, carts:44, vis:769, cvr:0.52, cart:5.72},
+    {id:'977969378950', spend:253, cpc:0.48, roi:4.66, cpcost:2.55, pcr:18.68, pcvr:0.57, porders:3, pgmv:1178, gmv:659, search:133, buyers:2, carts:86, vis:814, cvr:0.25, cart:10.57},
+    {id:'998190833334', spend:48, cpc:0.69, roi:0.00, cpcost:3.72, pcr:18.57, pcvr:0.00, porders:0, pgmv:0, gmv:0, search:34, buyers:0, carts:22, vis:403, cvr:0.00, cart:5.46},
+    {id:'778095871987', spend:88, cpc:1.73, roi:4.07, cpcost:8.00, pcr:21.57, pcvr:3.92, porders:2, pgmv:359, gmv:359, search:47, buyers:2, carts:22, vis:501, cvr:0.40, cart:4.39},
+    {id:'977212995721', spend:243, cpc:0.41, roi:1.44, cpcost:7.84, pcr:5.22, pcvr:0.17, porders:1, pgmv:350, gmv:1050, search:3, buyers:3, carts:31, vis:613, cvr:0.49, cart:5.06},
+    {id:'746422129499', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:0, search:12, buyers:0, carts:4, vis:149, cvr:0.00, cart:2.68},
+    {id:'826894791094', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:1130, search:21, buyers:3, carts:16, vis:1192, cvr:0.25, cart:1.34}
+  ]},
+  { d:'2026-10-15', r:[
+    {id:'744147141250', spend:1400, cpc:2.22, roi:3.74, cpcost:7.73, pcr:28.64, pcvr:2.22, porders:14, pgmv:5236, gmv:4987, search:197, buyers:12, carts:227, vis:2593, cvr:0.46, cart:8.75},
+    {id:'951732458364', spend:591, cpc:1.01, roi:8.48, cpcost:6.88, pcr:14.63, pcvr:2.89, porders:17, pgmv:5015, gmv:2936, search:206, buyers:11, carts:78, vis:1514, cvr:0.73, cart:5.15},
+    {id:'1087494116125',spend:988, cpc:0.41, roi:0.58, cpcost:6.02, pcr:6.74, pcvr:0.08, porders:2, pgmv:570, gmv:570, search:12, buyers:2, carts:147, vis:6771, cvr:0.03, cart:2.17},
+    {id:'746318478735', spend:300, cpc:1.59, roi:10.00, cpcost:11.11, pcr:14.29, pcvr:4.76, porders:9, pgmv:3001, gmv:1590, search:101, buyers:4, carts:46, vis:653, cvr:0.61, cart:7.04},
+    {id:'977969378950', spend:730, cpc:1.87, roi:2.70, cpcost:10.74, pcr:17.39, pcvr:1.28, porders:5, pgmv:1969, gmv:2098, search:156, buyers:6, carts:54, vis:588, cvr:1.02, cart:9.18},
+    {id:'998190833334', spend:165, cpc:0.51, roi:2.54, cpcost:6.88, pcr:7.48, pcvr:0.31, porders:1, pgmv:420, gmv:1107, search:37, buyers:2, carts:30, vis:1280, cvr:0.16, cart:2.34},
+    {id:'778095871987', spend:197, cpc:1.79, roi:4.85, cpcost:10.38, pcr:17.27, pcvr:4.55, porders:5, pgmv:956, gmv:742, search:37, buyers:4, carts:28, vis:347, cvr:1.15, cart:8.07},
+    {id:'977212995721', spend:370, cpc:0.41, roi:0.00, cpcost:9.74, pcr:4.22, pcvr:0.00, porders:0, pgmv:0, gmv:300, search:9, buyers:1, carts:40, vis:885, cvr:0.11, cart:4.52},
+    {id:'746422129499', spend:100, cpc:2.04, roi:3.30, cpcost:20.00, pcr:10.20, pcvr:2.04, porders:0, pgmv:330, gmv:330, search:23, buyers:1, carts:12, vis:287, cvr:0.35, cart:4.18},
+    {id:'826894791094', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:0, search:17, buyers:0, carts:18, vis:1263, cvr:0.00, cart:1.43}
+  ]},
+  { d:'2026-10-16', r:[
+    {id:'744147141250', spend:784, cpc:1.73, roi:7.10, cpcost:8.25, pcr:20.97, pcvr:3.31, porders:15, pgmv:5568, gmv:6658, search:212, buyers:18, carts:130, vis:2421, cvr:0.74, cart:5.37},
+    {id:'951732458364', spend:500, cpc:0.88, roi:3.89, cpcost:7.93, pcr:11.03, pcvr:1.23, porders:7, pgmv:1946, gmv:2800, search:177, buyers:11, carts:63, vis:1312, cvr:0.84, cart:4.80},
+    {id:'1087494116125',spend:1037, cpc:0.36, roi:3.04, cpcost:5.03, pcr:7.19,  pcvr:0.31, porders:9, pgmv:3150, gmv:2311, search:36, buyers:12, carts:177, vis:6234, cvr:0.19, cart:2.84},
+    {id:'746318478735', spend:240, cpc:3.48, roi:4.45, cpcost:20.00, pcr:17.39, pcvr:4.35, porders:3, pgmv:1069, gmv:1319, search:49, buyers:4, carts:37, vis:616, cvr:0.65, cart:6.01},
+    {id:'977969378950', spend:568, cpc:1.58, roi:6.34, cpcost:9.63, pcr:16.39, pcvr:2.78, porders:10, pgmv:3599, gmv:1470, search:97, buyers:4, carts:47, vis:711, cvr:0.56, cart:6.61},
+    {id:'998190833334', spend:150, cpc:0.39, roi:6.77, cpcost:5.02, pcr:7.69,  pcvr:0.77, porders:3, pgmv:1018, gmv:1138, search:19, buyers:3, carts:45, vis:1708, cvr:0.18, cart:2.63},
+    {id:'778095871987', spend:198, cpc:1.61, roi:2.02, cpcost:11.66, pcr:13.82, pcvr:1.63, porders:2, pgmv:400, gmv:5083, search:28, buyers:5, carts:28, vis:493, cvr:1.01, cart:5.68},
+    {id:'977212995721', spend:376, cpc:0.35, roi:0.00, cpcost:6.16, pcr:5.63,  pcvr:0.00, porders:0, pgmv:0, gmv:0, search:10, buyers:0, carts:51, vis:1048, cvr:0.00, cart:4.87},
+    {id:'746422129499', spend:100, cpc:2.08, roi:0.00, cpcost:100.00, pcr:2.08,  pcvr:0.00, porders:0, pgmv:0, gmv:0, search:23, buyers:0, carts:9, vis:265, cvr:0.00, cart:3.40},
+    {id:'826894791094', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:200, search:14, buyers:1, carts:11, vis:1346, cvr:0.07, cart:0.82}
+  ]},
+  { d:'2026-10-17', r:[
+    {id:'744147141250', spend:318, cpc:1.67, roi:2.29, cpcost:9.64, pcr:17.37, pcvr:1.05, porders:2, pgmv:729, gmv:2249, search:175, buyers:6, carts:93, vis:1895, cvr:0.32, cart:4.91},
+    {id:'951732458364', spend:286, cpc:0.94, roi:4.95, cpcost:8.94, pcr:10.49, pcvr:1.97, porders:6, pgmv:1417, gmv:2242, search:144, buyers:9, carts:59, vis:1019, cvr:0.88, cart:5.79},
+    {id:'1087494116125',spend:549, cpc:0.35, roi:0.60, cpcost:5.38, pcr:6.55,  pcvr:0.06, porders:1, pgmv:330, gmv:321, search:17, buyers:1, carts:84, vis:4348, cvr:0.02, cart:1.93},
+    {id:'746318478735', spend:140, cpc:1.17, roi:4.84, cpcost:8.26, pcr:14.17, pcvr:1.67, porders:2, pgmv:680, gmv:630, search:53, buyers:2, carts:50, vis:876, cvr:0.23, cart:5.71},
+    {id:'977969378950', spend:103, cpc:1.00, roi:1.65, cpcost:8.59, pcr:11.65, pcvr:0.97, porders:1, pgmv:170, gmv:750, search:60, buyers:2, carts:22, vis:377, cvr:0.53, cart:5.84},
+    {id:'998190833334', spend:92, cpc:0.49, roi:12.26, cpcost:4.85, pcr:10.05, pcvr:1.59, porders:3, pgmv:1129, gmv:779, search:16, buyers:2, carts:27, vis:946, cvr:0.21, cart:2.85},
+    {id:'778095871987', spend:85, cpc:1.49, roi:0.00, cpcost:7.74, pcr:19.30, pcvr:0.00, porders:0, pgmv:0, gmv:399, search:39, buyers:2, carts:24, vis:347, cvr:0.58, cart:6.92},
+    {id:'977212995721', spend:183, cpc:0.29, roi:2.08, cpcost:5.08, pcr:5.72,  pcvr:0.16, porders:1, pgmv:380, gmv:380, search:9, buyers:1, carts:28, vis:657, cvr:0.15, cart:4.26},
+    {id:'746422129499', spend:60, cpc:0.57, roi:5.49, cpcost:7.51, pcr:7.62,  pcvr:0.00, porders:1, pgmv:330, gmv:330, search:26, buyers:0, carts:10, vis:262, cvr:0.00, cart:3.82},
+    {id:'826894791094', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:0, search:17, buyers:0, carts:14, vis:1544, cvr:0.00, cart:0.91}
+  ]},
+  { d:'2026-10-18', r:[
+    {id:'744147141250', spend:464, cpc:1.92, roi:4.00, cpcost:10.78, pcr:17.77, pcvr:2.07, porders:5, pgmv:1854, gmv:3359, search:191, buyers:9, carts:99, vis:2060, cvr:0.44, cart:4.81},
+    {id:'951732458364', spend:218, cpc:0.98, roi:7.67, cpcost:5.45, pcr:17.94, pcvr:2.69, porders:6, pgmv:1672, gmv:2278, search:136, buyers:9, carts:61, vis:907, cvr:0.99, cart:6.73},
+    {id:'1087494116125',spend:501, cpc:0.37, roi:1.16, cpcost:7.06, pcr:5.29,  pcvr:0.15, porders:2, pgmv:583, gmv:583, search:19, buyers:2, carts:65, vis:3898, cvr:0.05, cart:1.67},
+    {id:'746318478735', spend:108, cpc:1.06, roi:10.08, cpcost:7.21, pcr:14.71, pcvr:2.94, porders:3, pgmv:1090, gmv:1590, search:60, buyers:5, carts:38, vis:575, cvr:0.87, cart:6.61},
+    {id:'977969378950', spend:138, cpc:0.66, roi:15.77, cpcost:3.72, pcr:17.70, pcvr:2.39, porders:5, pgmv:2170, gmv:0, search:106, buyers:0, carts:46, vis:561, cvr:0.00, cart:8.20},
+    {id:'998190833334', spend:84, cpc:0.66, roi:5.72, cpcost:5.59, pcr:11.81, pcvr:1.57, porders:2, pgmv:480, gmv:420, search:20, buyers:1, carts:27, vis:928, cvr:0.11, cart:2.91},
+    {id:'778095871987', spend:62, cpc:0.81, roi:0.00, cpcost:7.71, pcr:10.53, pcvr:0.00, porders:0, pgmv:0, gmv:139, search:58, buyers:1, carts:18, vis:440, cvr:0.23, cart:4.09},
+    {id:'977212995721', spend:193, cpc:0.28, roi:1.81, cpcost:8.79, pcr:3.24,  pcvr:0.15, porders:1, pgmv:350, gmv:0, search:10, buyers:0, carts:27, vis:727, cvr:0.00, cart:3.71},
+    {id:'746422129499', spend:53, cpc:0.44, roi:14.23, cpcost:4.85, pcr:9.09,  pcvr:1.65, porders:2, pgmv:759, gmv:0, search:17, buyers:0, carts:11, vis:461, cvr:0.00, cart:2.39},
+    {id:'826894791094', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:400, search:23, buyers:2, carts:16, vis:1372, cvr:0.15, cart:1.17}
+  ]},
+  { d:'2026-10-19', r:[
+    {id:'744147141250', spend:602, cpc:1.58, roi:7.75, cpcost:6.84, pcr:23.16, pcvr:3.42, porders:13, pgmv:4667, gmv:2197, search:156, buyers:5, carts:144, vis:2343, cvr:0.21, cart:6.15},
+    {id:'951732458364', spend:424, cpc:1.45, roi:5.68, cpcost:7.30, pcr:19.86, pcvr:2.74, porders:8, pgmv:2406, gmv:1997, search:157, buyers:7, carts:79, vis:811, cvr:0.86, cart:9.74},
+    {id:'1087494116125',spend:816, cpc:0.37, roi:0.73, cpcost:7.70, pcr:4.77,  pcvr:0.09, porders:2, pgmv:599, gmv:299, search:28, buyers:1, carts:96, vis:6471, cvr:0.02, cart:1.48},
+    {id:'746318478735', spend:233, cpc:1.44, roi:9.74, cpcost:10.59, pcr:13.58, pcvr:4.32, porders:7, pgmv:2268, gmv:1320, search:94, buyers:4, carts:47, vis:715, cvr:0.56, cart:6.57},
+    {id:'977969378950', spend:504, cpc:1.03, roi:9.45, cpcost:7.21, pcr:14.23, pcvr:2.44, porders:12, pgmv:4767, gmv:2369, search:171, buyers:6, carts:70, vis:978, cvr:0.61, cart:7.16},
+    {id:'998190833334', spend:80, cpc:0.62, roi:0.00, cpcost:4.45, pcr:13.85, pcvr:0.00, porders:0, pgmv:0, gmv:0, search:20, buyers:0, carts:39, vis:1157, cvr:0.00, cart:3.37},
+    {id:'778095871987', spend:158, cpc:0.89, roi:8.24, cpcost:7.17, pcr:12.36, pcvr:3.37, porders:6, pgmv:1301, gmv:1769, search:69, buyers:6, carts:30, vis:664, cvr:0.90, cart:4.52},
+    {id:'977212995721', spend:403, cpc:0.32, roi:0.00, cpcost:6.61, pcr:4.85,  pcvr:0.00, porders:0, pgmv:0, gmv:380, search:15, buyers:1, carts:57, vis:1236, cvr:0.08, cart:4.61},
+    {id:'746422129499', spend:81, cpc:0.57, roi:0.00, cpcost:6.21, pcr:9.15,  pcvr:0.00, porders:0, pgmv:0, gmv:330, search:18, buyers:1, carts:18, vis:632, cvr:0.16, cart:2.85},
+    {id:'826894791094', spend:0, cpc:null, roi:null, cpcost:null, pcr:null, pcvr:null, porders:0, pgmv:0, gmv:0, search:16, buyers:0, carts:22, vis:1128, cvr:0.00, cart:1.95}
+  ]},
+  { d:'2026-10-20', r:[
+    {id:'744147141250', spend:470, cpc:1.85, roi:7.76, cpcost:9.78, pcr:18.90, pcvr:3.94, porders:10, pgmv:3644, gmv:35682, search:174, buyers:85, carts:186, vis:2181, cvr:3.90, cart:8.53},
+    {id:'951732458364', spend:386, cpc:1.28, roi:8.61, cpcost:8.21, pcr:15.61, pcvr:4.32, porders:13, pgmv:3321, gmv:15455, search:157, buyers:56, carts:95, vis:913, cvr:6.13, cart:10.41},
+    {id:'1087494116125',spend:653, cpc:0.38, roi:2.97, cpcost:5.63, pcr:6.72,  pcvr:0.35, porders:6, pgmv:1938, gmv:5416, search:25, buyers:17, carts:98, vis:5198, cvr:0.33, cart:1.89},
+    {id:'746318478735', spend:240, cpc:2.02, roi:8.36, cpcost:12.63, pcr:15.97, pcvr:5.04, porders:6, pgmv:2007, gmv:12397, search:81, buyers:37, carts:66, vis:614, cvr:6.03, cart:10.75},
+    {id:'977969378950', spend:680, cpc:2.02, roi:7.53, cpcost:9.07, pcr:22.32, pcvr:3.87, porders:13, pgmv:5121, gmv:13527, search:182, buyers:33, carts:114, vis:802, cvr:4.11, cart:14.21},
+    {id:'998190833334', spend:134, cpc:0.97, roi:10.89, cpcost:8.92, pcr:10.87, pcvr:2.90, porders:4, pgmv:1458, gmv:5261, search:26, buyers:13, carts:50, vis:895, cvr:1.45, cart:5.59},
+    {id:'778095871987', spend:283, cpc:1.59, roi:2.75, cpcost:9.42, pcr:16.85, pcvr:2.81, porders:5, pgmv:776, gmv:5038, search:109, buyers:24, carts:55, vis:867, cvr:2.77, cart:6.34},
+    {id:'977212995721', spend:409, cpc:0.34, roi:0.93, cpcost:7.30, pcr:4.67,  pcvr:0.08, porders:1, pgmv:380, gmv:1460, search:19, buyers:4, carts:47, vis:1232, cvr:0.32, cart:3.81},
+    {id:'746422129499', spend:78, cpc:0.56, roi:45.94, cpcost:19.54, pcr:2.86,  pcvr:0.71, porders:1, pgmv:3591, gmv:5838, search:34, buyers:8, carts:16, vis:548, cvr:1.46, cart:2.92},
+    {id:'826894791094', spend:77, cpc:1.68, roi:2.59, cpcost:11.01, pcr:15.22, pcvr:2.17, porders:1, pgmv:200, gmv:1978, search:36, buyers:9, carts:29, vis:1305, cvr:0.69, cart:2.22}
+  ]},
+  { d:'2026-10-21', r:[
+    {id:'744147141250', spend:991, cpc:2.14, roi:10.89, cpcost:6.43, pcr:33.26, pcvr:6.26, porders:29, pgmv:10795, gmv:25835, search:313, buyers:63, carts:287, vis:2471, cvr:2.55, cart:11.61},
+    {id:'951732458364', spend:675, cpc:0.83, roi:8.87, cpcost:7.50, pcr:11.11, pcvr:2.84, porders:23, pgmv:5984, gmv:14260, search:248, buyers:51, carts:135, vis:1670, cvr:3.05, cart:8.08},
+    {id:'1087494116125',spend:845, cpc:0.44, roi:0.97, cpcost:5.83, pcr:7.54,  pcvr:0.16, porders:3, pgmv:818, gmv:1968, search:23, buyers:6, carts:128, vis:6958, cvr:0.09, cart:1.84},
+    {id:'746318478735', spend:450, cpc:3.95, roi:4.19, cpcost:26.47, pcr:14.91, pcvr:5.26, porders:6, pgmv:1887, gmv:5801, search:106, buyers:18, carts:71, vis:697, cvr:2.58, cart:10.19},
+    {id:'977969378950', spend:397, cpc:1.84, roi:0.98, cpcost:13.22, pcr:13.89, pcvr:0.46, porders:1, pgmv:390, gmv:5219, search:148, buyers:14, carts:81, vis:706, cvr:1.98, cart:11.47},
+    {id:'998190833334', spend:349, cpc:0.90, roi:4.66, cpcost:5.92, pcr:15.13, pcvr:1.03, porders:4, pgmv:1628, gmv:3054, search:46, buyers:8, carts:67, vis:1922, cvr:0.42, cart:3.49},
+    {id:'778095871987', spend:557, cpc:0.66, roi:3.84, cpcost:8.19, pcr:8.10,  pcvr:1.31, porders:11, pgmv:2138, gmv:3638, search:276, buyers:21, carts:75, vis:2604, cvr:0.81, cart:2.88},
+    {id:'977212995721', spend:515, cpc:0.29, roi:4.70, cpcost:5.20, pcr:5.59,  pcvr:0.40, porders:7, pgmv:2418, gmv:2189, search:30, buyers:6, carts:76, vis:1750, cvr:0.34, cart:4.34},
+    {id:'746422129499', spend:256, cpc:0.71, roi:3.98, cpcost:10.25, pcr:6.91,  pcvr:0.83, porders:3, pgmv:1019, gmv:2665, search:76, buyers:5, carts:28, vis:1194, cvr:0.42, cart:2.35},
+    {id:'826894791094', spend:150, cpc:3.49, roi:6.39, cpcost:37.50, pcr:9.30,  pcvr:4.65, porders:2, pgmv:959, gmv:959, search:43, buyers:2, carts:30, vis:1668, cvr:0.12, cart:1.80}
+  ]},
+  { d:'2026-10-22', r:[
+    {id:'744147141250', spend:2286, cpc:1.95, roi:6.68, cpcost:8.25, pcr:23.68, pcvr:3.59, porders:42, pgmv:15281, gmv:28465, search:593, buyers:75, carts:356, vis:3699, cvr:2.03, cart:9.62},
+    {id:'951732458364', spend:1270, cpc:1.25, roi:5.21, cpcost:9.62, pcr:13.00, pcvr:2.56, porders:26, pgmv:6615, gmv:10692, search:413, buyers:42, carts:162, vis:2273, cvr:1.85, cart:7.13},
+    {id:'1087494116125',spend:1210, cpc:0.43, roi:0.80, cpcost:4.51, pcr:9.50,  pcvr:0.11, porders:3, pgmv:965, gmv:2865, search:43, buyers:9, carts:234, vis:11835, cvr:0.08, cart:1.98},
+    {id:'746318478735', spend:600, cpc:1.67, roi:4.38, cpcost:10.52, pcr:15.88, pcvr:2.23, porders:8, pgmv:2629, gmv:6055, search:188, buyers:18, carts:98, vis:1371, cvr:1.31, cart:7.15},
+    {id:'977969378950', spend:575, cpc:1.37, roi:4.20, cpcost:10.65, pcr:12.83, pcvr:1.66, porders:7, pgmv:2415, gmv:4182, search:211, buyers:11, carts:76, vis:1112, cvr:0.99, cart:6.83},
+    {id:'998190833334', spend:270, cpc:0.57, roi:2.66, cpcost:9.00, pcr:6.38,  pcvr:0.43, porders:2, pgmv:718, gmv:2276, search:61, buyers:6, carts:69, vis:1699, cvr:0.35, cart:4.06},
+    {id:'778095871987', spend:630, cpc:0.54, roi:1.27, cpcost:8.40, pcr:6.47,  pcvr:0.35, porders:4, pgmv:797, gmv:1669, search:232, buyers:10, carts:68, vis:2490, cvr:0.40, cart:2.73},
+    {id:'977212995721', spend:359, cpc:0.33, roi:2.95, cpcost:5.52, pcr:6.00,  pcvr:0.28, porders:3, pgmv:1060, gmv:1110, search:39, buyers:3, carts:60, vis:1292, cvr:0.23, cart:4.64},
+    {id:'746422129499', spend:316, cpc:0.53, roi:3.39, cpcost:7.53, pcr:7.02,  pcvr:0.50, porders:3, pgmv:1073, gmv:1258, search:82, buyers:4, carts:35, vis:1720, cvr:0.23, cart:2.03},
+    {id:'826894791094', spend:134, cpc:0.77, roi:5.95, cpcost:8.94, pcr:8.62,  pcvr:2.30, porders:4, pgmv:797, gmv:1356, search:92, buyers:5, carts:36, vis:2201, cvr:0.23, cart:1.64}
+  ]},
+  { d:'2026-10-23', r:[
+    {id:'744147141250', spend:3350, cpc:2.57, roi:4.81, cpcost:12.84, pcr:20.05, pcvr:3.38, porders:44, pgmv:16107, gmv:28418, search:658, buyers:76, carts:315, vis:3550, cvr:2.14, cart:8.87},
+    {id:'951732458364', spend:2077, cpc:1.70, roi:4.36, cpcost:16.23, pcr:10.45, pcvr:2.61, porders:32, pgmv:9048, gmv:13174, search:440, buyers:44, carts:158, vis:2523, cvr:1.74, cart:6.26},
+    {id:'1087494116125',spend:1050, cpc:0.35, roi:1.52, cpcost:5.64, pcr:6.17,  pcvr:0.17, porders:5, pgmv:1599, gmv:2538, search:34, buyers:8, carts:172, vis:15451, cvr:0.05, cart:1.11},
+    {id:'746318478735', spend:807, cpc:1.47, roi:3.80, cpcost:8.96, pcr:16.42, pcvr:1.64, porders:9, pgmv:3064, gmv:3503, search:199, buyers:10, carts:130, vis:2786, cvr:0.36, cart:4.67},
+    {id:'977969378950', spend:1449, cpc:1.46, roi:2.62, cpcost:12.82, pcr:11.43, pcvr:1.01, porders:10, pgmv:3799, gmv:5459, search:315, buyers:13, carts:109, vis:2080, cvr:0.63, cart:5.24},
+    {id:'998190833334', spend:450, cpc:0.87, roi:6.90, cpcost:10.00, pcr:8.74,  pcvr:1.55, porders:8, pgmv:3107, gmv:5269, search:70, buyers:12, carts:73, vis:2748, cvr:0.44, cart:2.66},
+    {id:'778095871987', spend:1134, cpc:0.98, roi:1.64, cpcost:11.69, pcr:8.43,  pcvr:0.96, porders:11, pgmv:1860, gmv:3190, search:239, buyers:19, carts:89, vis:2548, cvr:0.75, cart:3.49},
+    {id:'977212995721', spend:465, cpc:0.35, roi:1.46, cpcost:5.29, pcr:6.56,  pcvr:0.15, porders:2, pgmv:680, gmv:380, search:22, buyers:1, carts:84, vis:3631, cvr:0.03, cart:2.31},
+    {id:'746422129499', spend:559, cpc:0.68, roi:1.70, cpcost:9.32, pcr:7.33,  pcvr:0.37, porders:3, pgmv:949, gmv:929, search:77, buyers:3, carts:45, vis:2308, cvr:0.13, cart:1.95},
+    {id:'826894791094', spend:400, cpc:2.58, roi:4.73, cpcost:19.05, pcr:13.55, pcvr:3.23, porders:5, pgmv:1892, gmv:1714, search:100, buyers:5, carts:37, vis:2344, cvr:0.21, cart:1.58}
+  ]},
+  { d:'2026-10-24', r:[
+    {id:'744147141250', spend:3973, cpc:2.54, roi:4.85, cpcost:11.69, pcr:21.73, pcvr:3.39, porders:53, pgmv:19257, gmv:25775, search:765, buyers:67, carts:343, vis:4015, cvr:1.67, cart:8.54},
+    {id:'951732458364', spend:2287, cpc:1.36, roi:4.10, cpcost:15.24, pcr:8.90,  pcvr:1.90, porders:32, pgmv:9387,  gmv:11295, search:427, buyers:39, carts:166, vis:2965, cvr:1.32, cart:5.60},
+    {id:'1087494116125',spend:1223, cpc:0.35, roi:2.52, cpcost:5.69,  pcr:6.13,  pcvr:0.29, porders:10, pgmv:3076,  gmv:3375,  search:31,  buyers:11, carts:195, vis:18646,cvr:0.06, cart:1.05},
+    {id:'746318478735', spend:1000, cpc:2.18, roi:3.51, cpcost:16.67, pcr:13.07, pcvr:2.40, porders:11, pgmv:3513,  gmv:5543,  search:173, buyers:18, carts:112, vis:2907, cvr:0.62, cart:3.85},
+    {id:'977969378950', spend:975, cpc:1.28, roi:4.96, cpcost:8.19,  pcr:15.60, pcvr:1.70, porders:13, pgmv:4833,  gmv:5064,  search:217, buyers:14, carts:114, vis:1607, cvr:0.87, cart:7.09},
+    {id:'998190833334', spend:686, cpc:0.62, roi:3.27, cpcost:6.12,  pcr:10.10, pcvr:0.54, porders:6,  pgmv:2245,  gmv:3863,  search:121, buyers:9,  carts:107, vis:4220, cvr:0.21, cart:2.54},
+    {id:'778095871987', spend:930, cpc:0.66, roi:2.48, cpcost:11.20, pcr:5.89,  pcvr:0.85, porders:12, pgmv:2309,  gmv:2987,  search:165, buyers:16, carts:83,  vis:3823, cvr:0.42, cart:2.17},
+    {id:'977212995721', spend:521, cpc:0.36, roi:0.44, cpcost:7.34,  pcr:4.88,  pcvr:0.07, porders:1,  pgmv:230,   gmv:380,   search:67,  buyers:1,  carts:61,  vis:5344, cvr:0.02, cart:1.14},
+    {id:'746422129499', spend:595, cpc:0.71, roi:6.91, cpcost:9.45,  pcr:7.55,  pcvr:1.56, porders:13, pgmv:4114,  gmv:1285,  search:89,  buyers:4,  carts:41,  vis:1840, cvr:0.22, cart:2.23},
+    {id:'826894791094', spend:400, cpc:1.89, roi:7.22, cpcost:14.29, pcr:13.21, pcvr:4.72, porders:10, pgmv:2888,  gmv:3257,  search:103, buyers:10, carts:41,  vis:1787, cvr:0.56, cart:2.29}
+  ]},
+  { d:'2026-10-25', r:[
+    {id:'744147141250', spend:3970.66, cpc:2.1721, roi:3.4967, cpcost:11.4099, pcr:19.0372, pcvr:2.0241, porders:37, pgmv:13884.01, gmv:21831.51, search:697, buyers:58, carts:343, vis:3932, cvr:1.4751, cart:8.7233},
+    {id:'951732458364', spend:2233.27, cpc:1.2872, roi:2.6911, cpcost:13.8712, pcr:9.2795,  pcvr:1.2104, porders:21, pgmv:6010.01,  gmv:11591.16, search:408, buyers:39, carts:183, vis:3363, cvr:1.1597, cart:5.4416},
+    {id:'1087494116125',spend:1056.78, cpc:0.3286, roi:1.4676, cpcost:7.8864,  pcr:4.1667,  pcvr:0.1555, porders:5,  pgmv:1550.98,  gmv:2210.50,  search:38,  buyers:7,  carts:130, vis:17921,cvr:0.0391, cart:0.7254},
+    {id:'746318478735', spend:933.97,  cpc:1.6738, roi:3.3689, cpcost:11.5305, pcr:14.5161, pcvr:1.6129, porders:9,  pgmv:3146.46,  gmv:6789.63,  search:147, buyers:20, carts:116, vis:3032, cvr:0.6596, cart:3.8259},
+    {id:'977969378950', spend:997.79,  cpc:2.7040, roi:2.6067, cpcost:15.8379, pcr:17.0732, pcvr:1.8970, porders:7,  pgmv:2600.92,  gmv:4018.90,  search:124, buyers:11, carts:84,  vis:1137, cvr:0.9675, cart:7.3879},
+    {id:'998190833334', spend:699.01,  cpc:0.5678, roi:2.8299, cpcost:5.1779,  pcr:10.9667, pcvr:0.4062, porders:5,  pgmv:1978.11,  gmv:4191.98,  search:123, buyers:11, carts:154, vis:5771, cvr:0.1906, cart:2.6685},
+    {id:'778095871987', spend:693.59,  cpc:0.4357, roi:2.4917, cpcost:8.2570,  pcr:5.2764,  pcvr:0.6281, porders:10, pgmv:1728.20,  gmv:2038.40,  search:176, buyers:11, carts:84,  vis:4769, cvr:0.2307, cart:1.7614},
+    {id:'977212995721', spend:469.84,  cpc:0.3311, roi:2.8086, cpcost:6.9094,  pcr:4.7921,  pcvr:0.2819, porders:4,  pgmv:1319.58,  gmv:1779.50,  search:45,  buyers:5,  carts:56,  vis:4732, cvr:0.1057, cart:1.1834},
+    {id:'746422129499', spend:557.36,  cpc:0.6604, roi:1.5119, cpcost:12.3858, pcr:5.3318,  pcvr:0.2370, porders:2,  pgmv:842.66,   gmv:2540.24,  search:65,  buyers:4,  carts:35,  vis:1803, cvr:0.2219, cart:1.9412},
+    {id:'826894791094', spend:400.00,  cpc:2.2472, roi:1.4485, cpcost:14.2857, pcr:15.7303, pcvr:1.1236, porders:2,  pgmv:579.41,   gmv:1738.23,  search:66,  buyers:4,  carts:38,  vis:2174, cvr:0.1840, cart:1.7479}
+  ]},
+  { d:'2026-10-26', r:[
+    {id:'744147141250', spend:4438.49, cpc:2.2485, roi:2.8918, cpcost:12.3980, pcr:18.1358, pcvr:1.7224, porders:34, pgmv:12835.02, gmv:20505.92, search:726, buyers:48, carts:386, vis:4739, cvr:1.0129, cart:8.1452},
+    {id:'951732458364', spend:2658.42, cpc:1.3882, roi:2.7886, cpcost:13.4945, pcr:10.2872, pcvr:1.5144, porders:29, pgmv:7413.34,  gmv:11600.99, search:470, buyers:41, carts:201, vis:3384, cvr:1.2116, cart:5.9397},
+    {id:'1087494116125',spend:1326.98, cpc:0.3312, roi:1.1218, cpcost:6.6019,  pcr:5.0175,  pcvr:0.1248, porders:5,  pgmv:1488.57,  gmv:2486.61,  search:33,  buyers:8,  carts:174, vis:23620,cvr:0.0339, cart:0.7367},
+    {id:'746318478735', spend:1043.48, cpc:1.6590, roi:3.5245, cpcost:11.9940, pcr:13.8315, pcvr:1.7488, porders:11, pgmv:3677.73,  gmv:4197.11,  search:218, buyers:13, carts:129, vis:3653, cvr:0.3559, cart:3.5313},
+    {id:'977969378950', spend:943.52,  cpc:1.1232, roi:3.6203, cpcost:6.8870,  pcr:16.3095, pcvr:1.0714, porders:9,  pgmv:3415.84,  gmv:3719.00,  search:242, buyers:9,  carts:118, vis:1775, cvr:0.5070, cart:6.6479},
+    {id:'998190833334', spend:700.00,  cpc:0.5978, roi:4.2171, cpcost:5.8333,  pcr:10.2477, pcvr:0.5978, porders:7,  pgmv:2952.00,  gmv:2295.10,  search:111, buyers:5,  carts:123, vis:4739, cvr:0.1055, cart:2.5955},
+    {id:'778095871987', spend:1079.86, cpc:0.7282, roi:2.9112, cpcost:10.3833, pcr:7.0128,  pcvr:1.1463, porders:17, pgmv:3143.70,  gmv:3663.10,  search:188, buyers:18, carts:99,  vis:3395, cvr:0.5302, cart:2.9161},
+    {id:'977212995721', spend:645.11,  cpc:0.3582, roi:3.8897, cpcost:6.8629,  pcr:5.2193,  pcvr:0.3887, porders:7,  pgmv:2509.30,  gmv:2859.20,  search:24,  buyers:8,  carts:86,  vis:7526, cvr:0.1063, cart:1.1427},
+    {id:'746422129499', spend:543.03,  cpc:0.5474, roi:0.0000, cpcost:7.3382,  pcr:7.4597,  pcvr:0.0000, porders:0,  pgmv:0.00,     gmv:299.47,   search:45,  buyers:1,  carts:37,  vis:1853, cvr:0.0540, cart:1.9968},
+    {id:'826894791094', spend:400.00,  cpc:2.0101, roi:2.8971, cpcost:17.3913, pcr:11.5578, pcvr:2.0101, porders:4,  pgmv:1158.82,  gmv:2712.88,  search:73,  buyers:10, carts:32,  vis:2308, cvr:0.4333, cart:1.3865}
+  ]},
+  { d:'2026-10-27', r:[
+    {id:'744147141250', spend:4385, cpc:2.19, roi:4.78, cpcost:11.57, pcr:18.93, pcvr:2.75, porders:55, pgmv:20983, gmv:30004, search:960, buyers:77, carts:371, vis:4056, cvr:1.90, cart:9.15},
+    {id:'951732458364', spend:3173, cpc:1.68, roi:2.25, cpcost:15.11, pcr:11.14, pcvr:1.49, porders:28, pgmv:7133, gmv:11219, search:502, buyers:41, carts:196, vis:4404, cvr:0.93, cart:4.45},
+    {id:'1087494116125', spend:1095, cpc:0.40, roi:0.86, cpcost:7.87, pcr:5.06, pcvr:0.11, porders:3, pgmv:942, gmv:1871, search:34, buyers:6, carts:137, vis:16343, cvr:0.04, cart:0.84},
+    {id:'746318478735', spend:826, cpc:1.39, roi:3.99, cpcost:10.59, pcr:13.11, pcvr:1.51, porders:9, pgmv:3297, gmv:5478, search:209, buyers:17, carts:125, vis:3751, cvr:0.45, cart:3.33},
+    {id:'977969378950', spend:934, cpc:1.15, roi:2.70, cpcost:9.73, pcr:11.82, pcvr:0.86, porders:7, pgmv:2519, gmv:3689, search:215, buyers:10, carts:109, vis:1669, cvr:0.60, cart:6.53},
+    {id:'998190833334', spend:696, cpc:0.65, roi:2.05, cpcost:5.90, pcr:11.10, pcvr:0.38, porders:4, pgmv:1428, gmv:2665, search:117, buyers:6, carts:129, vis:4406, cvr:0.14, cart:2.93},
+    {id:'778095871987', spend:1044, cpc:0.73, roi:2.90, cpcost:8.70, pcr:8.37, pcvr:1.05, porders:15, pgmv:3032, gmv:2706, search:183, buyers:15, carts:108, vis:4048, cvr:0.37, cart:2.67},
+    {id:'977212995721', spend:540, cpc:0.41, roi:1.30, cpcost:9.14, pcr:4.53, pcvr:0.15, porders:2, pgmv:700, gmv:1460, search:20, buyers:4, carts:53, vis:7309, cvr:0.05, cart:0.73},
+    {id:'746422129499', spend:424, cpc:0.58, roi:5.47, cpcost:7.44, pcr:7.76, pcvr:0.68, porders:5, pgmv:2318, gmv:0, search:39, buyers:0, carts:34, vis:2446, cvr:0.00, cart:1.39},
+    {id:'826894791094', spend:386, cpc:2.06, roi:5.09, cpcost:19.32, pcr:10.64, pcvr:3.19, porders:6, pgmv:1968, gmv:1918, search:69, buyers:6, carts:32, vis:2431, cvr:0.25, cart:1.32}
+  ]},
+  { d:'2026-10-28', r:[
+    {id:'744147141250', spend:5438, cpc:2.41, roi:5.07, cpcost:13.73, pcr:17.55, pcvr:3.23, porders:73, pgmv:27593, gmv:42788, search:1032, buyers:106, carts:400, vis:4450, cvr:2.38, cart:8.99},
+    {id:'951732458364', spend:2982, cpc:1.48, roi:2.60, cpcost:14.55, pcr:10.19, pcvr:1.39, porders:28, pgmv:7754,  gmv:11046, search:443,  buyers:39,  carts:211, vis:4540, cvr:0.86, cart:4.65},
+    {id:'1087494116125',spend:1291, cpc:0.42, roi:0.51, cpcost:9.49,  pcr:4.46,  pcvr:0.07, porders:2,  pgmv:659,   gmv:1618,  search:23,   buyers:5,   carts:128, vis:14449,cvr:0.03, cart:0.89},
+    {id:'746318478735', spend:962,  cpc:1.52, roi:3.18, cpcost:12.49, pcr:12.16, pcvr:1.42, porders:9,  pgmv:3057,  gmv:4764,  search:207,  buyers:15,  carts:120, vis:3748, cvr:0.40, cart:3.20},
+    {id:'977969378950', spend:880,  cpc:1.08, roi:3.53, cpcost:7.28,  pcr:14.90, pcvr:0.99, porders:8,  pgmv:3105,  gmv:5009,  search:250,  buyers:13,  carts:113, vis:1657, cvr:0.78, cart:6.82},
+    {id:'998190833334', spend:700,  cpc:0.56, roi:3.61, cpcost:4.49,  pcr:12.42, pcvr:0.56, porders:7,  pgmv:2528,  gmv:1557,  search:101,  buyers:4,   carts:152, vis:5337, cvr:0.07, cart:2.85},
+    {id:'778095871987', spend:1116, cpc:0.75, roi:2.25, cpcost:9.70,  pcr:7.75,  pcvr:0.94, porders:14, pgmv:2510,  gmv:3084,  search:205,  buyers:17,  carts:107, vis:5020, cvr:0.34, cart:2.13},
+    {id:'977212995721', spend:857,  cpc:0.41, roi:0.82, cpcost:12.41, pcr:3.33,  pcvr:0.10, porders:2,  pgmv:700,   gmv:4989,  search:34,   buyers:5,   carts:57,  vis:9240, cvr:0.05, cart:0.62},
+    {id:'746422129499', spend:265,  cpc:0.52, roi:3.09, cpcost:7.80,  pcr:6.63,  pcvr:0.39, porders:2,  pgmv:819,   gmv:660,   search:17,   buyers:2,   carts:22,  vis:876,  cvr:0.23, cart:2.51},
+    {id:'826894791094', spend:306,  cpc:1.22, roi:1.24, cpcost:11.32, pcr:10.80, pcvr:0.80, porders:2,  pgmv:378,   gmv:779,   search:100,  buyers:3,   carts:30,  vis:1763, cvr:0.17, cart:1.70}
+  ]},
+  { d:'2026-10-29', r:[
+    {id:'744147141250', spend:6005, cpc:2.66, roi:4.08, cpcost:15.32, pcr:17.35, pcvr:2.92, porders:66, pgmv:24502, gmv:33258, search:1059, buyers:81, carts:363, vis:5719, cvr:1.42, cart:6.35},
+    {id:'951732458364', spend:2977, cpc:1.56, roi:1.84, cpcost:13.85, pcr:11.29, pcvr:1.05, porders:20, pgmv:5476,  gmv:10517, search:409,  buyers:34, carts:235, vis:4020, cvr:0.85, cart:5.85},
+    {id:'1087494116125',spend:1638, cpc:0.42, roi:0.40, cpcost:6.97,  pcr:5.98,  pcvr:0.05, porders:2,  pgmv:660,   gmv:1948,  search:24,   buyers:5,  carts:111, vis:10282,cvr:0.05, cart:1.08},
+    {id:'746318478735', spend:805,  cpc:1.76, roi:0.41, cpcost:16.44, pcr:10.70, pcvr:0.22, porders:1,  pgmv:330,   gmv:4515,  search:184,  buyers:12, carts:87,  vis:3090, cvr:0.39, cart:2.82},
+    {id:'977969378950', spend:787,  cpc:1.38, roi:5.25, cpcost:10.78, pcr:12.76, pcvr:1.92, porders:11, pgmv:4129,  gmv:5699,  search:226,  buyers:14, carts:69,  vis:1181, cvr:1.19, cart:5.84},
+    {id:'998190833334', spend:669,  cpc:0.67, roi:2.16, cpcost:5.86,  pcr:11.48, pcvr:0.40, porders:4,  pgmv:1447,  gmv:1886,  search:62,   buyers:5,  carts:135, vis:4718, cvr:0.11, cart:2.86},
+    {id:'778095871987', spend:1151, cpc:0.74, roi:1.84, cpcost:9.43,  pcr:7.86,  pcvr:0.64, porders:10, pgmv:2118,  gmv:2581,  search:212,  buyers:13, carts:116, vis:5385, cvr:0.24, cart:2.15},
+    {id:'977212995721', spend:2043, cpc:0.37, roi:0.68, cpcost:14.39, pcr:2.56,  pcvr:0.07, porders:4,  pgmv:1400,  gmv:1050,  search:20,   buyers:3,  carts:92,  vis:12153,cvr:0.02, cart:0.76},
+    {id:'746422129499', spend:495,  cpc:0.52, roi:4.31, cpcost:11.25, pcr:4.62,  pcvr:0.63, porders:6,  pgmv:2134,  gmv:1606,  search:19,   buyers:5,  carts:27,  vis:1403, cvr:0.36, cart:1.92},
+    {id:'826894791094', spend:392,  cpc:1.86, roi:5.36, cpcost:11.89, pcr:15.64, pcvr:3.32, porders:7,  pgmv:2101,  gmv:5374,  search:94,   buyers:9,  carts:42,  vis:988,  cvr:0.91, cart:4.25}
+  ]},
+  { d:'2026-10-30', r:[
+    {id:'744147141250', spend:5314, cpc:2.63, roi:2.76, cpcost:17.09, pcr:15.41, pcvr:1.88, porders:38, pgmv:14684, gmv:25362, search:940, buyers:65, carts:310, vis:4961, cvr:1.31, cart:6.25},
+    {id:'951732458364', spend:1659, cpc:1.37, roi:3.24, cpcost:13.94, pcr:9.85,  pcvr:1.74, porders:21, pgmv:5370,  gmv:10515, search:249, buyers:41, carts:157, vis:3046, cvr:1.35, cart:5.15},
+    {id:'1087494116125',spend:0,    cpc:null, roi:null, cpcost:null,  pcr:null,  pcvr:null, porders:0,  pgmv:0,     gmv:629,   search:24,  buyers:2,  carts:28,  vis:1009, cvr:0.20, cart:2.78},
+    {id:'746318478735', spend:649,  cpc:1.77, roi:3.45, cpcost:10.99, pcr:16.08, pcvr:1.91, porders:7,  pgmv:2237,  gmv:3445,  search:152, buyers:11, carts:73,  vis:2100, cvr:0.52, cart:3.48},
+    {id:'977969378950', spend:769,  cpc:1.24, roi:3.09, cpcost:8.84,  pcr:14.01, pcvr:0.97, porders:6,  pgmv:2378,  gmv:3899,  search:231, buyers:9,  carts:80,  vis:1126, cvr:0.80, cart:7.10},
+    {id:'998190833334', spend:454,  cpc:0.90, roi:1.45, cpcost:8.40,  pcr:10.76, pcvr:0.40, porders:2,  pgmv:660,   gmv:1620,  search:53,  buyers:4,  carts:76,  vis:2279, cvr:0.18, cart:3.33},
+    {id:'778095871987', spend:1070, cpc:0.99, roi:1.86, cpcost:11.76, pcr:8.45,  pcvr:1.02, porders:11, pgmv:1989,  gmv:3325,  search:155, buyers:19, carts:98,  vis:3535, cvr:0.54, cart:2.77},
+    {id:'977212995721', spend:399,  cpc:0.41, roi:0.88, cpcost:14.77, pcr:2.79,  pcvr:0.10, porders:1,  pgmv:350,   gmv:1430,  search:21,  buyers:4,  carts:65,  vis:7032, cvr:0.06, cart:0.92},
+    {id:'746422129499', spend:100,  cpc:0.24, roi:3.31, cpcost:5.87,  pcr:4.06,  pcvr:0.24, porders:1,  pgmv:330,   gmv:660,   search:19,  buyers:2,  carts:20,  vis:932,  cvr:0.21, cart:2.15},
+    {id:'826894791094', spend:400,  cpc:3.51, roi:6.56, cpcost:28.57, pcr:12.28, pcvr:7.02, porders:8,  pgmv:2623,  gmv:2113,  search:57,  buyers:7,  carts:19,  vis:847,  cvr:0.83, cart:2.24}
+  ]},
+  { d:'2026-10-31', r:[
+    {id:'744147141250', spend:4495, cpc:2.56, roi:4.28, cpcost:14.55, pcr:17.57, pcvr:3.01, porders:53, pgmv:19230, gmv:22394, search:802, buyers:59, carts:285, vis:3932, cvr:1.50, cart:7.25},
+    {id:'951732458364', spend:1947, cpc:1.46, roi:3.99, cpcost:12.09, pcr:12.11, pcvr:2.11, porders:28, pgmv:7764,  gmv:7659,  search:282, buyers:30, carts:165, vis:3203, cvr:0.94, cart:5.15},
+    {id:'1087494116125',spend:413,  cpc:0.53, roi:1.52, cpcost:20.65, pcr:2.59,  pcvr:0.26, porders:2,  pgmv:629,   gmv:1257,  search:19,  buyers:4,  carts:25,  vis:1969, cvr:0.20, cart:1.27},
+    {id:'746318478735', spend:986,  cpc:2.61, roi:4.21, cpcost:15.17, pcr:17.20, pcvr:3.44, porders:13, pgmv:4154,  gmv:5812,  search:125, buyers:17, carts:76,  vis:1783, cvr:0.95, cart:4.26},
+    {id:'977969378950', spend:944,  cpc:1.26, roi:7.44, cpcost:8.50,  pcr:14.82, pcvr:2.40, porders:18, pgmv:7022,  gmv:3959,  search:204, buyers:10, carts:99,  vis:1454, cvr:0.69, cart:6.81},
+    {id:'998190833334', spend:424,  cpc:0.90, roi:0.99, cpcost:7.19,  pcr:12.55, pcvr:0.21, porders:1,  pgmv:420,   gmv:840,   search:67,  buyers:2,  carts:75,  vis:2444, cvr:0.08, cart:3.07},
+    {id:'778095871987', spend:544,  cpc:0.53, roi:0.90, cpcost:9.38,  pcr:5.68,  pcvr:0.29, porders:3,  pgmv:489,   gmv:2311,  search:110, buyers:13, carts:58,  vis:3319, cvr:0.39, cart:1.75},
+    {id:'977212995721', spend:989,  cpc:0.32, roi:0.00, cpcost:10.41, pcr:3.03,  pcvr:0.00, porders:0,  pgmv:0,     gmv:0,     search:19,  buyers:0,  carts:83,  vis:12576,cvr:0.00, cart:0.66},
+    {id:'746422129499', spend:497,  cpc:0.53, roi:0.66, cpcost:13.44, pcr:3.97,  pcvr:0.11, porders:1,  pgmv:330,   gmv:299,   search:26,  buyers:1,  carts:30,  vis:1135, cvr:0.09, cart:2.64},
+    {id:'826894791094', spend:400,  cpc:3.31, roi:2.72, cpcost:23.53, pcr:14.05, pcvr:4.13, porders:5,  pgmv:1088,  gmv:2891,  search:50,  buyers:10, carts:26,  vis:379,  cvr:2.64, cart:6.86}
+  ]},
+  { d:'2026-11-01', r:[
+    {id:'744147141250', spend:4636, cpc:2.01, roi:4.72, cpcost:12.63, pcr:15.93, pcvr:2.60, porders:60, pgmv:21894, gmv:24256, search:1051, buyers:61, carts:342, vis:4650, cvr:1.31, cart:7.35},
+    {id:'951732458364', spend:2199, cpc:1.71, roi:3.53, cpcost:14.19, pcr:12.06, pcvr:1.95, porders:25, pgmv:7762,  gmv:10364, search:373,  buyers:36, carts:188, vis:2830, cvr:1.27, cart:6.64},
+    {id:'1087494116125',spend:521,  cpc:0.52, roi:1.30, cpcost:17.36, pcr:3.00,  pcvr:0.20, porders:2,  pgmv:679,   gmv:1918,  search:25,   buyers:6,  carts:26,  vis:2427, cvr:0.25, cart:1.07},
+    {id:'746318478735', spend:570,  cpc:1.58, roi:4.00, cpcost:11.87, pcr:13.33, pcvr:1.94, porders:7,  pgmv:2278,  gmv:4166,  search:165,  buyers:12, carts:70,  vis:1750, cvr:0.69, cart:4.00},
+    {id:'977969378950', spend:921,  cpc:0.92, roi:3.84, cpcost:6.10,  pcr:15.01, pcvr:0.89, porders:9,  pgmv:3539,  gmv:5908,  search:215,  buyers:16, carts:128, vis:1622, cvr:0.99, cart:7.89},
+    {id:'998190833334', spend:500,  cpc:1.04, roi:4.50, cpcost:7.81,  pcr:13.25, pcvr:1.24, porders:6,  pgmv:2248,  gmv:840,   search:81,   buyers:2,  carts:75,  vis:2767, cvr:0.07, cart:2.71},
+    {id:'778095871987', spend:629,  cpc:0.58, roi:2.00, cpcost:9.11,  pcr:6.42,  pcvr:0.65, porders:7,  pgmv:1255,  gmv:2668,  search:163,  buyers:14, carts:68,  vis:3525, cvr:0.40, cart:1.93},
+    {id:'977212995721', spend:908,  cpc:0.27, roi:1.22, cpcost:10.81, pcr:2.53,  pcvr:0.09, porders:3,  pgmv:1110,  gmv:1490,  search:16,   buyers:4,  carts:78,  vis:14901,cvr:0.03, cart:0.52},
+    {id:'746422129499', spend:474,  cpc:0.49, roi:0.63, cpcost:14.36, pcr:3.41,  pcvr:0.10, porders:1,  pgmv:299,   gmv:0,     search:31,   buyers:0,  carts:24,  vis:1182, cvr:0.00, cart:2.03},
+    {id:'826894791094', spend:349,  cpc:1.30, roi:4.75, cpcost:8.12,  pcr:15.99, pcvr:2.60, porders:7,  pgmv:1658,  gmv:1778,  search:102,  buyers:8,  carts:47,  vis:510,  cvr:1.57, cart:9.22}
+  ]},
+  { d:'2026-11-02', r:[
+    {id:'744147141250', spend:5304, cpc:2.15, roi:4.11, cpcost:13.03, pcr:16.46, pcvr:2.35, porders:58, pgmv:21822, gmv:29959, search:1083, buyers:77, carts:348, vis:4701, cvr:1.64, cart:7.40},
+    {id:'951732458364', spend:2099, cpc:1.44, roi:3.30, cpcost:12.57, pcr:11.49, pcvr:1.72, porders:25, pgmv:6918,  gmv:10537, search:396,  buyers:33, carts:186, vis:3094, cvr:1.07, cart:6.01},
+    {id:'1087494116125',spend:219,  cpc:0.43, roi:0.00, cpcost:11.54, pcr:3.72,  pcvr:0.00, porders:0,  pgmv:0,     gmv:929,   search:15,   buyers:3,  carts:26,  vis:1580, cvr:0.19, cart:1.65},
+    {id:'746318478735', spend:1000, cpc:2.83, roi:4.63, cpcost:19.23, pcr:14.73, pcvr:3.40, porders:12, pgmv:4629,  gmv:6951,  search:169,  buyers:20, carts:86,  vis:1546, cvr:1.29, cart:5.56},
+    {id:'977969378950', spend:1000, cpc:1.18, roi:2.72, cpcost:9.80,  pcr:12.04, pcvr:0.83, porders:7,  pgmv:2719,  gmv:5549,  search:222,  buyers:12, carts:107, vis:1438, cvr:0.83, cart:7.44},
+    {id:'998190833334', spend:417,  cpc:0.65, roi:4.00, cpcost:5.22,  pcr:12.42, pcvr:0.62, porders:4,  pgmv:1670,  gmv:2100,  search:81,   buyers:5,  carts:99,  vis:2866, cvr:0.17, cart:3.45},
+    {id:'778095871987', spend:632,  cpc:0.64, roi:1.42, cpcost:12.63, pcr:5.07,  pcvr:0.51, porders:5,  pgmv:897,   gmv:1949,  search:127,  buyers:10, carts:51,  vis:2985, cvr:0.34, cart:1.71},
+    {id:'977212995721', spend:596,  cpc:0.27, roi:1.23, cpcost:8.76,  pcr:3.09,  pcvr:0.09, porders:2,  pgmv:730,   gmv:1080,  search:15,   buyers:3,  carts:51,  vis:11547,cvr:0.03, cart:0.44},
+    {id:'746422129499', spend:239,  cpc:0.38, roi:10.63,cpcost:6.83,  pcr:5.53,  pcvr:1.11, porders:7,  pgmv:2541,  gmv:640,   search:18,   buyers:2,  carts:22,  vis:841,  cvr:0.24, cart:2.62},
+    {id:'826894791094', spend:500,  cpc:2.24, roi:1.64, cpcost:23.81, pcr:9.42,  pcvr:1.35, porders:3,  pgmv:818,   gmv:2143,  search:101,  buyers:9,  carts:26,  vis:1196, cvr:0.75, cart:2.17}
+  ]}
+];
+
+/* =========================================================
+   4) 组装
+   ========================================================= */
+const LS_KEY = 'rongTop10Trend.v2';
+let EXTRA = (()=>{ try{ const s = localStorage.getItem(LS_KEY); return s ? JSON.parse(s) : {}; }catch(e){ return {}; } })();
+function saveExtra(o){ try{ localStorage.setItem(LS_KEY, JSON.stringify(o)); }catch(e){} }
+
+function ensureProduct(id, name){
+  if(!PRODUCTS[id]){
+    PRODUCTS[id] = [name || id, name || id];
+    if(PORDER.indexOf(id) < 0) PORDER.push(id);
+  }
+}
+function normalize(raw){
+  const o = {id:String(raw.id)};
+  METRICS.forEach(m => { if(!m.derived){
+    const v = raw[m.k];
+    o[m.k] = (v === undefined || v === null || v === '' || v === '--') ? null : Number(v);
+    if(o[m.k] !== null && !isFinite(o[m.k])) o[m.k] = null;
+  }});
+  METRICS.forEach(m => { if(m.derived) o[m.k] = m.derived(o); });
+  ensureProduct(o.id, raw.name);
+  return o;
+}
+
+let DATA = [], IDX = {};
+function rebuild(){
+  const map = {};
+  RAW_DAYS.forEach(d => { map[d.d] = d.r.slice(); });
+  Object.keys(EXTRA).forEach(k => { if(EXTRA[k] && EXTRA[k].length) map[k] = EXTRA[k]; });
+  DATA = Object.keys(map).sort().map(dt => ({ date: dt, rows: map[dt].map(normalize) }));
+  IDX = {};
+  DATA.forEach(d => { IDX[d.date] = {}; d.rows.forEach(r => IDX[d.date][r.id] = r); });
+}
+rebuild();
+
+const LATEST = () => DATA.length ? DATA[DATA.length-1] : null;
+const PREV = (i) => { const k = (i === undefined ? DATA.length - 2 : i); return k >= 0 && k < DATA.length ? DATA[k] : null; };
+const dayAt = d => IDX[d] ? {date:d} : null;
+function rowOf(day, id){ if(!day || !IDX[day.date]) return null; return IDX[day.date][id] || null; }
+function val(day, id, k){ const r = rowOf(day, id); return r ? r[k] : null; }
+
+const S = {
+  sort:'gmv',
+  detailId:null, dMetric:'gmv',
+  linkMetric:'gmv', linkShow:false, linkActive:new Set(PORDER)
+};
+
+/* =========================================================
+   5) 工具
+   ========================================================= */
+function fmtNum(v, d){ return Number(v).toLocaleString('zh-CN', {minimumFractionDigits:d, maximumFractionDigits:d}); }
+function fmtVal(m, v){
+  if(v === null || v === undefined || !isFinite(v)) return '—';
+  if(m.kind === 'money') return '¥' + fmtNum(v, m.d);
+  let s = fmtNum(v, m.d);
+  if(m.u === '%') s += '%';
+  if(m.u === '人') s += ' 人';
+  if(m.u === '单') s += ' 单';
+  return s;
+}
+function fmtShort(m, v){
+  if(v === null || v === undefined || !isFinite(v)) return '—';
+  if(m.u === '%') return v.toFixed(m.d) + '%';
+  if(Math.abs(v) >= 10000) return (v/10000).toFixed(1) + '万';
+  if(m.kind === 'money') return '¥' + fmtNum(v, m.d);
+  return fmtNum(v, m.d);
+}
+function fmtDelta(cur, prev){
+  if(cur === null || cur === undefined || prev === null || prev === undefined) return null;
+  if(!isFinite(cur) || !isFinite(prev) || prev === 0) return null;
+  return (cur - prev) / Math.abs(prev) * 100;
+}
+function dcls(p, dir){
+  if(p === null || p === undefined) return 'flat';
+  if(Math.abs(p) < 0.05) return 'flat';
+  if(dir === 0) return 'neutral';
+  return (p > 0 ? dir > 0 : dir < 0) ? 'good' : 'bad';
+}
+function dstr(p){ return (p === null || p === undefined) ? '—' : (p > 0 ? '+' : '') + p.toFixed(1) + '%'; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function mmdd(d){ return d.slice(5).replace('-', '/'); }
+function niceScale(min, max, ticks){
+  if(min === max){ max = min + (Math.abs(min) * 0.2 || 1); }
+  const raw = (max - min) / ticks;
+  const mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10));
+  const norm = raw / mag;
+  const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+  return { lo: Math.floor(min / step) * step, hi: Math.ceil(max / step) * step, step: step };
+}
+function toast(t){
+  const el = document.getElementById('toast');
+  el.textContent = t; el.classList.add('on');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>el.classList.remove('on'), 1600);
+}
+function copyText(t){ navigator.clipboard.writeText(t).then(()=>toast('已复制'), ()=>toast('复制失败，请手动选择')); }
+
+/* =========================================================
+   7) KPI 渲染（单链接）
+   ========================================================= */
+const KPI_KEYS = ['gmv','vis','spend','fr','pgmv','roi','cvr','cart','porders','aov'];
+function kpiCards(cur, prev, selKey){
+  return KPI_KEYS.map(k=>{
+    const m = MB[k];
+    const c = cur ? cur[k] : null;
+    const p = prev ? prev[k] : null;
+    let txt = '—', cl = 'flat';
+    if(c !== null && p !== null && isFinite(c) && isFinite(p)){
+      if(m.u === '%'){ const dpt = c - p; txt = (dpt>=0?'+':'') + dpt.toFixed(Math.abs(dpt) > 0 && Math.abs(dpt) < 0.01 ? 3 : 2) + 'pt'; cl = dcls(dpt, m.dir); }
+      else if(k === 'roi' || k === 'aov'){ const dd = c - p; txt = (dd>=0?'+':'') + dd.toFixed(2); cl = dcls(dd, m.dir); }
+      else { const dp = fmtDelta(c, p); txt = dstr(dp); cl = dcls(dp, m.dir); }
+    }
+    const tone = cl === 'good' ? 'good' : cl === 'bad' ? 'bad' : '';
+    const on = (selKey && k === selKey) ? ' on' : '';
+    return {k, html:'<div class="kpi ' + tone + on + '" data-kpi="' + k + '">'
+      + '<div class="lab"><span>' + m.n + '</span><em>' + (m.dir === -1 ? '越低越好' : m.dir === 0 ? '中性' : '') + '</em></div>'
+      + '<div class="val">' + fmtVal(m, c).replace(/([%人单])$/, '<small>$1</small>') + '</div>'
+      + '<div class="cmp">日环比 <b class="' + cl + '">' + txt + '</b></div></div>'};
+  });
+}
+
+/* =========================================================
+   8) 折线 / 柱状图（单指标）
+   ========================================================= */
+function drawChart(host, opts){
+  const { dates, series, metric, mode, color } = opts;
+  const m = metric;
+  const all = [];
+  series.forEach(s => s.vals.forEach(v => { if(v !== null && v !== undefined && isFinite(v)) all.push(v); }));
+  if(!dates.length || !all.length){ host.innerHTML = '<div class="empty">该指标在现有日期内无有效数据</div>'; return; }
+
+  const multi = series.length > 1;
+  const W = 1180, H = multi ? 330 : 300;
+  const L = 70, R = multi ? 30 : 26, T = 24, B = 44;
+  const vmin = Math.min.apply(null, all), vmax = Math.max.apply(null, all);
+  let lo, hi, step;
+  if(vmax === vmin){
+    const pad = Math.abs(vmax) * 0.2 || 1;
+    lo = vmax >= 0 ? Math.max(0, vmax - pad) : vmax - pad; hi = vmax + pad; step = (hi - lo) / 4;
+  } else if(vmin >= 0 && vmin < vmax * 0.45){
+    const t = niceScale(0, vmax, 4); lo = t.lo; hi = t.hi; step = t.step;
+  } else {
+    const t = niceScale(vmin, vmax, 4); lo = t.lo; hi = t.hi; step = t.step;
+  }
+  if(hi === lo) hi = lo + 1;
+
+  const n = dates.length, inner = W - L - R;
+  const padX = n === 1 ? 0 : Math.min(60, inner * 0.10);
+  const X = i => n === 1 ? L + inner/2 : L + padX + (inner - padX*2) * i / (n - 1);
+  const Y = v => T + (hi - v) / (hi - lo) * (H - T - B);
+
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '">';
+  for(let v = lo; v <= hi + step*1e-6; v += step){
+    const y = Y(v);
+    svg += '<line x1="' + L + '" y1="' + y.toFixed(1) + '" x2="' + (W-R) + '" y2="' + y.toFixed(1) + '" stroke="#eef3f0"/>';
+    let lab;
+    if(m.u === '%') lab = v.toFixed(step < 1 ? 2 : step < 10 ? 1 : 0) + '%';
+    else if(Math.abs(v) >= 10000) lab = (v/10000).toFixed(1) + '万';
+    else lab = fmtNum(v, step < 1 ? 2 : 0);
+    svg += '<text x="' + (L-10) + '" y="' + (y+3.5).toFixed(1) + '" text-anchor="end" font-size="10.5" fill="#9aa8a0">' + lab + '</text>';
+  }
+  dates.forEach((d, i)=>{
+    svg += '<text x="' + X(i).toFixed(1) + '" y="' + (H-B+20) + '" text-anchor="middle" font-size="11.5" fill="#6d7c74">' + mmdd(d) + '</text>';
+  });
+  svg += '<line x1="' + L + '" y1="' + (H-B) + '" x2="' + (W-R) + '" y2="' + (H-B) + '" stroke="#dfe8e3"/>';
+  svg += '<text x="' + L + '" y="' + (T-9) + '" font-size="10.5" fill="#9aa8a0">' + (m.u ? '单位：' + (m.u === '%' ? '%' : m.u) : '') + '</text>';
+
+  const barW = Math.min(54, (inner / Math.max(n,1)) * (multi ? 0.55 : 0.32));
+  if(mode === 'bar' && n > 0){
+    series.forEach((s, si)=>{
+      s.vals.forEach((v, i)=>{
+        if(v === null || v === undefined || !isFinite(v)) return;
+        const cx = X(i), y = Y(v), base = Y(Math.max(lo, 0));
+        const w = barW / Math.max(series.length, 1);
+        const x = cx - barW/2 + w * si + (w * 0.08);
+        svg += '<rect x="' + x.toFixed(1) + '" y="' + Math.min(y, base).toFixed(1) + '" width="' + (w*0.84).toFixed(1)
+             + '" height="' + Math.abs(base - y).toFixed(1) + '" rx="2" fill="' + s.color + '" opacity="0.9"/>';
+      });
+    });
+  } else {
+    series.forEach(s=>{
+      let d = '', pen = false;
+      s.vals.forEach((v, i)=>{
+        if(v === null || v === undefined || !isFinite(v)){ pen = false; return; }
+        d += (pen ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1); pen = true;
+      });
+      if(d) svg += '<path d="' + d + '" fill="none" stroke="' + s.color + '" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+      s.vals.forEach((v, i)=>{
+        if(v === null || v === undefined || !isFinite(v)) return;
+        svg += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(v).toFixed(1) + '" r="4" fill="#fff" stroke="' + s.color + '" stroke-width="2"/>';
+      });
+    });
+  }
+
+  // 数据标签（日期点不多时才显示，避免拥挤）
+  if(n <= 12 && series.length === 1){
+    series[0].vals.forEach((v, i)=>{
+      if(v === null || v === undefined || !isFinite(v)) return;
+      svg += '<text x="' + X(i).toFixed(1) + '" y="' + (Y(v) - 11).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="600" fill="#3d4d45">' + fmtShort(m, v) + '</text>';
+    });
+  }
+
+  svg += '<rect id="ovl" x="' + L + '" y="' + T + '" width="' + inner + '" height="' + (H-T-B) + '" fill="transparent"/>';
+  svg += '<line class="guide" x1="0" y1="' + T + '" x2="0" y2="' + (H-B) + '" stroke="#b8c9c0" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>';
+  svg += '</svg>';
+
+  host.innerHTML = svg + '<div class="tip" id="tip"></div>';
+  const ovl = host.querySelector('#ovl'), guide = host.querySelector('.guide'), tip = host.querySelector('#tip');
+  const rc = () => host.getBoundingClientRect();
+  ovl.addEventListener('mousemove', ev=>{
+    const box = rc(), sx = (ev.clientX - box.left) / box.width * W;
+    let best = 0, bd = 1e9;
+    dates.forEach((d, i)=>{ const dx = Math.abs(X(i) - sx); if(dx < bd){ bd = dx; best = i; } });
+    guide.setAttribute('x1', X(best).toFixed(1)); guide.setAttribute('x2', X(best).toFixed(1)); guide.setAttribute('opacity','1');
+    let html = '<div class="td">' + dates[best] + '</div>';
+    series.forEach(s=>{
+      const v = s.vals[best];
+      if(v === null || v === undefined || !isFinite(v)) return;
+      const prevV = best > 0 ? s.vals[best-1] : null;
+      const p = fmtDelta(v, prevV);
+      html += '<div class="rw"><span><i style="background:' + s.color + '"></i>' + esc(s.name || m.n) + '</span><span>' + fmtVal(m, v)
+        + (p === null ? '' : ' <span style="opacity:.7">(' + dstr(p) + ')</span>') + '</span></div>';
+    });
+    tip.innerHTML = html; tip.style.opacity = '1';
+    const px = ev.clientX - box.left, py = ev.clientY - box.top;
+    tip.style.left = Math.min(Math.max(px + 14, 4), box.width - 190) + 'px';
+    tip.style.top = Math.max(py - 10, 4) + 'px';
+  });
+  ovl.addEventListener('mouseleave', ()=>{ tip.style.opacity = '0'; guide.setAttribute('opacity','0'); });
+}
+
+/* =========================================================
+   9) 指标按钮组
+   ========================================================= */
+function metricBtns(hostId, cur, attr){
+  const groups = {};
+  METRICS.forEach(m => { (groups[m.g] = groups[m.g] || []).push(m); });
+  let html = '';
+  Object.keys(groups).forEach(g=>{
+    if(html) html += '<span class="div"></span>';
+    groups[g].forEach(m=>{
+      html += '<button data-' + attr + '="' + m.k + '"' + (cur === m.k ? ' class="on"' : '') + '>' + m.n + '</button>';
+    });
+  });
+  document.getElementById(hostId).innerHTML = html;
+}
+
+/* =========================================================
+   10) 每日数据表（单链接）：rows = 日期（倒序），cols = 指标，表头可点
+   ========================================================= */
+function dayTable(hostId, getRow, activeMetric, attr){
+  const mets = METRICS;
+  let head = '<tr><th class="l" style="min-width:96px">日期</th>'
+    + mets.map(m => '<th class="mh' + (m.k === activeMetric ? ' on' : '') + '" data-' + attr + '="' + m.k + '" title="点击查看 ' + m.n + ' 趋势">' + m.n + '</th>').join('')
+    + '</tr>';
+  const rows = [];
+  for(let i = DATA.length - 1; i >= 0; i--){
+    const day = DATA[i], prevDay = i > 0 ? DATA[i-1] : null;
+    const cur = getRow(day), prev = prevDay ? getRow(prevDay) : null;
+    if(!cur) continue;
+    let tds = '<td class="l"><b>' + day.date + '</b>' + (i === DATA.length - 1 ? '<span class="dd" style="color:#0E7A4A">最新</span>' : '') + '</td>';
+    mets.forEach(m=>{
+      const c = cur[m.k], p = prev ? prev[m.k] : null;
+      let dtxt = '', cl = 'flat';
+      if(c !== null && c !== undefined && p !== null && p !== undefined && isFinite(c) && isFinite(p)){
+        if(m.u === '%'){
+          const dpt = c - p;
+          dtxt = (dpt >= 0 ? '+' : '') + dpt.toFixed(Math.abs(dpt) < 0.01 && dpt !== 0 ? 3 : 2) + 'pt';
+          cl = dcls(dpt, m.dir);
+        } else if(m.k === 'roi' || m.k === 'aov'){
+          const dd = c - p;
+          dtxt = (dd >= 0 ? '+' : '') + dd.toFixed(2) + (m.k === 'aov' ? ' 元' : '');
+          cl = dcls(dd, m.dir);
+        } else {
+          const dp = fmtDelta(c, p);
+          if(dp !== null){ dtxt = dstr(dp); cl = dcls(dp, m.dir); }
+        }
+      }
+      tds += '<td>' + '<span>' + fmtVal(m, c) + '</span>'
+        + (dtxt ? '<span class="dd ' + cl + '">' + dtxt + '</span>' : '') + '</td>';
+    });
+    rows.push('<tr>' + tds + '</tr>');
+  }
+  document.getElementById(hostId).innerHTML = '<thead>' + head + '</thead><tbody>' + rows.join('') + '</tbody>';
+}
+
+/* =========================================================
+   11) 链接列表
+   ========================================================= */
+const LINK_COLS = ['vis','gmv','cvr','cart','spend','fr','roi','porders','pgmv'];
+/* 表格列：控制在一屏宽度内；付费成交数/额等其余指标在就地展开的明细里看全量 */
+const LINK_HEAD = [
+  ['vis','访客数'],['gmv','单品GMV'],['cvr','转化率'],['cart','加购率'],
+  ['spend','花费'],['fr','费比'],['roi','付费ROI']
+];
+function sparkMini(vals, color){
+  const W=74, H=22, P=3;
+  const pts = vals.map((v,i)=>({i,v})).filter(p => p.v !== null && p.v !== undefined && isFinite(p.v));
+  if(pts.length < 2) return '<div style="height:22px;color:#c3cec8;font-size:10px;text-align:center;line-height:22px">—</div>';
+  const vmin = Math.min.apply(null, pts.map(p=>p.v)), vmax = Math.max.apply(null, pts.map(p=>p.v));
+  const span = (vmax - vmin) || 1;
+  const X = i => P + (W - 2*P) * i / (vals.length - 1);
+  const Y = v => H - P - (v - vmin)/span * (H - 2*P);
+  let d = pts.map((p,idx)=> (idx?'L':'M') + X(p.i).toFixed(1) + ',' + Y(p.v).toFixed(1)).join(' ');
+  const last = pts[pts.length-1], first = pts[0];
+  const col = last.v >= first.v ? color : '#c0562e';
+  return '<svg viewBox="0 0 ' + W + ' ' + H + '"><path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="1.6" stroke-linejoin="round"/>'
+    + '<circle cx="' + X(last.i).toFixed(1) + '" cy="' + Y(last.v).toFixed(1) + '" r="2" fill="' + col + '"/></svg>';
+}
+/* 全部链接 单指标趋势（点链接表表头触发） */
+const PALETTE = ['#0E7A4A','#c0562e','#2f6f9f','#7a5ea8','#1f8f8f','#b8860b','#a53f6b','#6d8c3a','#4a5a63','#8c4a2f','#3d6b52','#a0522d'];
+const PCOLOR = {};
+function linkColor(id){
+  if(!PCOLOR[id]) PCOLOR[id] = PALETTE[PORDER.indexOf(id) % PALETTE.length] || '#0E7A4A';
+  return PCOLOR[id];
+}
+function renderLinkTrend(){
+  const wrap = document.getElementById('linkTrendWrap');
+  if(!S.linkShow){ wrap.hidden = true; return; }
+  wrap.hidden = false;
+  const m = MB[S.linkMetric];
+  document.getElementById('linkTrendName').textContent = m.n + (m.derived ? '（派生）' : '');
+  const dates = DATA.map(d => d.date);
+  const ids = PORDER.filter(id => S.linkActive.has(id));
+  const series = ids.map(id => ({
+    id, name: PRODUCTS[id][1], color: linkColor(id),
+    vals: DATA.map(d => val(d, id, S.linkMetric))
+  }));
+  drawChart(document.getElementById('linkTrendChart'), { dates, metric:m, mode:'line', series });
+  document.getElementById('linkTrendChips').innerHTML = PORDER.map(id => {
+    const on = S.linkActive.has(id);
+    const v = LATEST() ? val(LATEST(), id, S.linkMetric) : null;
+    return '<button class="chip' + (on ? ' on' : '') + '" data-lid="' + id + '"><i style="background:' + linkColor(id) + '"></i>'
+      + esc(PRODUCTS[id][1]) + '<b>' + fmtVal(m, v) + '</b></button>';
+  }).join('');
+}
+
+function renderLinkTable(){
+  const last = LATEST(), prev = PREV();
+  document.getElementById('linkLead').textContent = last
+    ? ('数据日 ' + last.date.replace(/-/g,'/') + '（对比 ' + (prev ? prev.date.replace(/-/g,'/') : '无') + '）· 点击任意一行，在下方就地展开：该链接每天的完整数据与指标趋势')
+    : '暂无数据';
+  const head = '<tr><th style="width:34px">#</th><th class="l">链接 / 名称</th>'
+    + LINK_HEAD.map(([k, n]) => k === '_spark'
+        ? '<th>' + n + '</th>'
+        : '<th class="mh' + (S.linkMetric === k ? ' on' : '') + '" data-lk="' + k + '" title="点击看全部链接的 ' + n + ' 逐日趋势">' + n + '</th>').join('')
+    + '<th style="width:28px"></th></tr>';
+
+  const ids = PORDER.slice().sort((a,b)=>{
+    const va = val(last,a,S.sort), vb = val(last,b,S.sort);
+    if(S.sort === 'fr') return (va||0) - (vb||0);
+    return (vb||0) - (va||0);
+  });
+
+  const body = ids.map((id, idx)=>{
+    const cur = rowOf(last, id), pv = rowOf(prev, id);
+    let tds = '<td><span class="rank">' + (idx+1) + '</span></td>'
+      + '<td class="l"><div class="pname">' + esc(PRODUCTS[id][1]) + '</div><div class="pid">' + id + '</div></td>';
+    LINK_HEAD.forEach(([k])=>{
+      if(k === '_spark'){
+        tds += '<td class="sparkcell">' + sparkMini(DATA.map(d => val(d, id, 'gmv')), '#0E7A4A') + '</td>';
+        return;
+      }
+      const m = MB[k], c = cur ? cur[k] : null, p = pv ? pv[k] : null;
+      let dtxt = '', cl = 'flat';
+      if(c !== null && p !== null && isFinite(c) && isFinite(p)){
+        if(m.u === '%'){
+          const dpt = c - p;
+          dtxt = (dpt >= 0 ? '+' : '') + dpt.toFixed(Math.abs(dpt) < 0.01 && dpt !== 0 ? 3 : 2) + 'pt';
+          cl = dcls(dpt, m.dir);
+        } else if(k === 'roi'){
+          const dd = c - p;
+          dtxt = (dd >= 0 ? '+' : '') + dd.toFixed(2);
+          cl = dcls(dd, m.dir);
+        } else {
+          const dp = fmtDelta(c, p);
+          if(dp !== null){ dtxt = dstr(dp); cl = dcls(dp, m.dir); }
+        }
+      }
+      tds += '<td><span>' + fmtVal(m, c) + '</span>' + (dtxt ? '<span class="dd ' + cl + '">' + dtxt + '</span>' : '') + '</td>';
+    });
+    tds += '<td class="go">›</td>';
+    return '<tr class="tr-link" data-id="' + id + '">' + tds + '</tr>';
+  }).join('');
+
+  document.getElementById('linkTable').innerHTML = '<thead>' + head + '</thead><tbody>' + body + '</tbody>';
+  renderLinkTrend();
+}
+/* =========================================================
+   12) 链接下钻（就地展开，不跳页）
+   ========================================================= */
+function renderDetail(){
+  const id = S.detailId;
+  const wrap = document.getElementById('inlineDetail');
+  if(!id){ wrap.hidden = true; return; }
+  const last = LATEST(), prev = PREV();
+  const cur = rowOf(last, id), pv = rowOf(prev, id);
+  const nameFull = PRODUCTS[id][0];
+
+  wrap.hidden = false;
+
+  // 头部
+  const gmvSum = DATA.reduce((s,d)=> s + (val(d,id,'gmv')||0), 0);
+  const spendSum = DATA.reduce((s,d)=> s + (val(d,id,'spend')||0), 0);
+  document.getElementById('dName').textContent = nameFull;
+  document.getElementById('dMeta').textContent = '主链接ID：' + id + ' · 数据日期 ' + DATA.map(d=>mmdd(d.date)).join(' / ');
+  document.getElementById('dSum').innerHTML =
+    '累计GMV <b>¥' + fmtNum(gmvSum,0) + '</b> · 累计花费 <b>¥' + fmtNum(spendSum,0) + '</b><br>'
+    + '最新日 GMV <b>' + fmtVal(MB.gmv, cur?cur.gmv:null) + '</b> · 费比 <b>' + fmtVal(MB.fr, cur?cur.fr:null) + '</b> · 付费ROI <b>' + fmtVal(MB.roi, cur?cur.roi:null) + '</b>';
+
+  document.getElementById('dKpiNote').textContent = last
+    ? ('数据日 ' + last.date.replace(/-/g,'/') + (prev ? ' vs ' + prev.date.replace(/-/g,'/') : '') + ' · 仅该链接')
+    : '';
+  document.getElementById('dKpis').innerHTML = cur ? kpiCards(cur, pv, S.dMetric).map(c=>c.html).join('') : '<div class="empty">该链接在最新日无数据</div>';
+
+  // 趋势
+  const m = MB[S.dMetric];
+  document.getElementById('dChartTitle').textContent = '当前指标：' + m.n + (m.derived ? '（派生）' : '');
+  const dates = DATA.map(d=>d.date);
+  drawChart(document.getElementById('dChart'), {
+    dates, metric:m, mode:'line',
+    series:[{name:PRODUCTS[id][1], vals:DATA.map(d => val(d, id, S.dMetric)), color:'#0E7A4A'}]
+  });
+
+  metricBtns('dMetricBtns', S.dMetric, 'dmetric');
+  dayTable('dDayTable', day => rowOf(day, id), S.dMetric, 'dhead');
+}
+
+/* 展开/收起某个链接的明细（同一页面内，不跳页） */
+function openLink(id, scroll){
+  const same = (S.detailId === id);
+  S.detailId = same ? null : id;
+  if(S.detailId) S.dMetric = 'gmv';
+  renderDetail();
+  markActiveRow();
+  syncNav();
+  if(S.detailId && scroll) document.getElementById('inlineDetail').scrollIntoView({behavior:'smooth', block:'start'});
+  if(same) document.getElementById('linkTable').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function markActiveRow(){
+  const tb = document.getElementById('linkTable').querySelectorAll('tr.tr-link');
+  Array.prototype.forEach.call(tb, tr => {
+    tr.classList.toggle('on', tr.getAttribute('data-id') === S.detailId);
+  });
+}
+
+function renderOverview(){
+  document.getElementById('dateChips').innerHTML = DATA.map(d => '<span>' + d.date + '</span>').join('');
+  renderLinkTable();
+}
+
+function renderAll(){
+  document.getElementById('dateChips').innerHTML = DATA.map(d => '<span>' + d.date + '</span>').join('');
+  renderLinkTable();
+  renderDetail();
+  markActiveRow();
+}
+
+/* =========================================================
+   14) 数据接入
+   ========================================================= */
+const IMP_COLS = ['id','name','spend','cpc','roi','cpcost','pcr','pcvr','porders','pgmv','gmv','search','buyers','carts','vis','cvr','cart'];
+const RATE_KEYS = ['pcr','pcvr','cvr','cart'];
+function parseBlock(text){
+  const out = [];
+  text.split(/\r?\n/).forEach(line=>{
+    if(!line.trim()) return;
+    let cells = (line.indexOf('\t') >= 0 ? line.split('\t') : line.split(/ {2,}/)).map(s => s.trim());
+    while(cells.length && cells[0] === '') cells.shift();
+    if(cells.length < 17) return;
+    if(!/^\d{6,}$/.test(cells[0])) return;
+    const o = {id:cells[0], name:cells[1]};
+    IMP_COLS.slice(2).forEach((k, i)=>{
+      let raw = (cells[i+2] || '').replace(/[¥,％%\s]/g, '');
+      if(raw === '' || raw === '--' || raw === '-'){ o[k] = null; return; }
+      let v = Number(raw);
+      if(!isFinite(v)){ o[k] = null; return; }
+      if(RATE_KEYS.indexOf(k) >= 0 && v <= 1) v = v * 100;
+      o[k] = v;
+    });
+    out.push(o);
+  });
+  return out;
+}
+
+/* =========================================================
+   15) 事件
+   ========================================================= */
+// 链接列表 → 就地展开该链接明细（不跳页）
+document.getElementById('linkTable').addEventListener('click', e=>{
+  const th = e.target.closest('th[data-lk]');
+  if(th){
+    S.linkMetric = th.dataset.lk;
+    S.linkShow = true;
+    S.linkActive = new Set(PORDER);
+    renderLinkTable();
+    document.getElementById('linkTrendWrap').scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  const tr = e.target.closest('tr.tr-link');
+  if(!tr) return;
+  openLink(tr.dataset.id, true);
+});
+document.getElementById('linkSortBtns').addEventListener('click', e=>{
+  const b = e.target.closest('button[data-sort]');
+  if(!b) return;
+  S.sort = b.dataset.sort;
+  Array.from(document.querySelectorAll('#linkSortBtns button[data-sort]')).forEach(x => x.classList.toggle('on', x === b));
+  renderLinkTable();
+  markActiveRow();
+});
+document.getElementById('linkTrendChips').addEventListener('click', e=>{
+  const b = e.target.closest('button[data-lid]');
+  if(!b) return;
+  const id = b.dataset.lid;
+  if(S.linkActive.has(id)) S.linkActive.delete(id); else S.linkActive.add(id);
+  renderLinkTrend();
+});
+document.getElementById('linkTrendAll').addEventListener('click', ()=>{ S.linkActive = new Set(PORDER); renderLinkTrend(); });
+document.getElementById('linkTrendClose').addEventListener('click', ()=>{ S.linkShow = false; renderLinkTrend(); });
+document.getElementById('linkCopy').addEventListener('click', ()=>{
+  const last = LATEST(), prev = PREV();
+  const ids = PORDER.slice().sort((a,b)=> (val(last,b,'gmv')||0) - (val(last,a,'gmv')||0));
+  let txt = '链接ID\t名称\t' + LINK_COLS.map(k=>MB[k].n).join('\t');
+  ids.forEach(id=>{
+    const r = rowOf(last, id);
+    txt += '\n' + id + '\t' + PRODUCTS[id][1] + '\t' + LINK_COLS.map(k => { const v = r ? r[k] : null; return v === null ? '' : v; }).join('\t');
+  });
+  copyText(txt);
+});
+
+// 返回 / 收起
+document.getElementById('navBack').addEventListener('click', ()=>{
+  if(S.detailId){ S.detailId = null; renderDetail(); markActiveRow(); syncNav(); }
+  document.getElementById('linkTable').scrollIntoView({behavior:'smooth', block:'center'});
+});
+document.getElementById('dClose').addEventListener('click', ()=>{
+  S.detailId = null; renderDetail(); markActiveRow(); syncNav();
+  document.getElementById('linkTable').scrollIntoView({behavior:'smooth', block:'center'});
+});
+
+// 就地明细交互
+document.getElementById('dKpis').addEventListener('click', e=>{
+  const c = e.target.closest('[data-kpi]');
+  if(!c) return;
+  S.dMetric = c.dataset.kpi;
+  renderDetail();
+});
+document.getElementById('dMetricBtns').addEventListener('click', e=>{
+  const b = e.target.closest('button[data-dmetric]');
+  if(!b) return;
+  S.dMetric = b.dataset.dmetric;
+  renderDetail();
+});
+document.getElementById('dDayTable').addEventListener('click', e=>{
+  const th = e.target.closest('th[data-dhead]');
+  if(!th) return;
+  S.dMetric = th.dataset.dhead;
+  renderDetail();
+  document.getElementById('dChart').scrollIntoView({behavior:'smooth', block:'center'});
+});
+document.getElementById('dCopy').addEventListener('click', ()=>{
+  const id = S.detailId, mets = METRICS;
+  let txt = '日期\t' + mets.map(m=>m.n).join('\t');
+  DATA.slice().reverse().forEach(d=>{
+    const r = rowOf(d, id);
+    txt += '\n' + d.date + '\t' + mets.map(m=>{ const v = r ? r[m.k] : null; return v === null ? '' : v; }).join('\t');
+  });
+  copyText(txt);
+});
+
+// 数据接入
+document.getElementById('impAdd').addEventListener('click', ()=>{
+  const date = document.getElementById('impDate').value;
+  const rows = parseBlock(document.getElementById('impText').value);
+  if(!date){ toast('请先选择数据日期'); return; }
+  if(!rows.length){ toast('未解析到有效数据行（需 17 列）'); return; }
+  EXTRA[date] = rows; saveExtra(EXTRA); rebuild();
+  renderAll();
+  document.getElementById('impStatus').innerHTML = '<span class="good">已加入 ' + date + '：' + rows.length + ' 个链接</span>';
+  toast('已加入 ' + date + '（' + rows.length + ' 行）');
+});
+document.getElementById('impExport').addEventListener('click', ()=>{
+  const dates = Object.keys(EXTRA).sort();
+  if(!dates.length){ document.getElementById('impOut').value = '// 本页暂无新增日期'; return; }
+  let out = '';
+  dates.forEach(dt=>{
+    out += "  { d:'" + dt + "', r:[\n";
+    EXTRA[dt].forEach(r=>{
+      out += '    {id:\'' + r.id + '\', spend:' + r.spend + ', cpc:' + r.cpc + ', roi:' + r.roi + ', cpcost:' + r.cpcost
+        + ', pcr:' + r.pcr + ', pcvr:' + r.pcvr + ', porders:' + r.porders + ', pgmv:' + r.pgmv
+        + ', gmv:' + r.gmv + ', search:' + r.search + ', buyers:' + r.buyers + ', carts:' + r.carts
+        + ', vis:' + r.vis + ', cvr:' + r.cvr + ', cart:' + r.cart + '},\n';
+    });
+    out += '  ]},\n';
+  });
+  document.getElementById('impOut').value = out; toast('已生成，可粘贴到 RAW_DAYS');
+});
+document.getElementById('impReset').addEventListener('click', ()=>{
+  EXTRA = {}; saveExtra({}); rebuild(); renderAll();
+  document.getElementById('impStatus').innerHTML = '<span class="bad">已清除本页新增日期，恢复为内置两天</span>';
+  toast('已恢复内置数据');
+});
+
+/* =========================================================
+   16) 初始化
+   ========================================================= */
+(function init(){
+  const d = new Date();
+  document.getElementById('impDate').value = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  renderAll();
+  applyHash();
+  // 支持地址栏 #link=<主链接ID> 直接展开该链接（含同文档 hash 变化）
+  if(typeof window !== 'undefined' && window.addEventListener) window.addEventListener('hashchange', applyHash);
+})();
+
+function applyHash(){
+  const h = (typeof location !== 'undefined') ? (location.hash || '') : '';
+  const mh = /^#link=(\w+)$/.exec(h);
+  if(mh && PRODUCTS[mh[1]]){
+    if(S.detailId !== mh[1]){
+      S.detailId = mh[1]; renderDetail(); markActiveRow(); syncNav();
+      document.getElementById('inlineDetail').scrollIntoView({block:'start'});
+    }
+  } else if(S.detailId){
+    S.detailId = null; renderDetail(); markActiveRow(); syncNav();
+  }
+}
+
+/* 顶部导航文字跟随当前展开的链接 */
+function syncNav(){
+  const nav = document.getElementById('nav');
+  const navCur = document.getElementById('navCur');
+  if(S.detailId){
+    nav.classList.add('detail');
+    navCur.textContent = '展开中：' + PRODUCTS[S.detailId][1] + '（' + S.detailId + '）';
+    try{ if(typeof history !== 'undefined') history.replaceState(null, '', location.pathname + location.search + '#link=' + S.detailId); }catch(e){}
+  } else {
+    nav.classList.remove('detail');
+    navCur.textContent = '全部 ' + PORDER.length + ' 个链接';
+    try{ if(typeof location !== 'undefined' && location.hash) history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+  }
+}
+</script>
+</body>
+</html>
