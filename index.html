@@ -15,11 +15,20 @@
   .tag{background:#eef2ff;color:#4f46e5;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600}
   .card{background:#fff;border-radius:14px;padding:18px 20px;margin-bottom:16px;
         box-shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04)}
-  h2{font-size:14.5px;margin:0 0 14px;font-weight:700;display:flex;align-items:center;gap:8px}
+  
+  h2{font-size:14.5px;margin:0 0 14px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   h2::before{content:"";width:3px;height:14px;background:#4f46e5;border-radius:2px}
   h2 small{font-weight:400;color:#98a2b3;font-size:11.5px;margin-left:4px}
 
-  /* 筛选 */
+  /* 新增：图表右上角筛选器样式 */
+  .chart-filter{
+    margin-left:auto; padding:4px 8px; border:1px solid #d9dee8; border-radius:6px;
+    font-size:12px; color:#475467; background:#fff; outline:none; cursor:pointer;
+    font-family:inherit; font-weight:500;
+  }
+  .chart-filter:hover{border-color:#4f46e5}
+  .chart-filter:focus{border-color:#4f46e5; box-shadow:0 0 0 2px rgba(79,70,229,.1)}
+
   .filters{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
   .filters label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:#667085;font-weight:600}
   .filters input{padding:7px 10px;border:1px solid #d9dee8;border-radius:8px;
@@ -31,7 +40,6 @@
   .quick button:hover{border-color:#4f46e5;color:#4f46e5;background:#f5f6ff}
   .quick button.on{background:#4f46e5;border-color:#4f46e5;color:#fff}
 
-  /* 商品卡 */
   .products{display:flex;gap:16px;align-items:stretch}
   .prod{flex:1;display:flex;gap:14px;align-items:flex-start;padding:12px 14px;border-radius:12px;
         border:1px solid #eef1f8;min-width:0}
@@ -47,7 +55,6 @@
   .vs{align-self:center;font-weight:800;color:#c0c6d4;font-size:13px;letter-spacing:1px;flex-shrink:0}
   @media(max-width:820px){.products{flex-direction:column}.vs{display:none}}
 
-  /* 商品选择器（输入 + 下拉 + 搜索） */
   .combo{position:relative;display:flex;gap:6px;margin-top:8px}
   .pid-input{flex:1;min-width:0;padding:6px 10px;border:1px solid #d9dee8;border-radius:8px;
         font-size:12.5px;font-weight:600;color:#1f2937;background:#fff;outline:none;
@@ -75,7 +82,6 @@
   .opt-img svg{width:100%;height:100%;display:block}
   .opt-empty{padding:14px;text-align:center;color:#98a2b3;font-size:12px}
 
-  /* 表格 */
   table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
   table.tbl th{background:#f8fafc;color:#667085;font-weight:600;text-align:right;
         padding:9px 10px;border-bottom:1px solid #eaecf0;white-space:nowrap}
@@ -93,11 +99,10 @@
   .down{color:#e5484d;font-weight:600}
   .muted{color:#c0c6d4}
 
-  /* 图表 */
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media(max-width:980px){.grid2{grid-template-columns:1fr}}
   .chart{width:100%;min-height:250px;position:relative}
-  .legend{display:flex;gap:16px;font-size:11.5px;color:#667085;margin-bottom:6px}
+  .legend{display:flex;gap:16px;font-size:11.5px;color:#667085;margin-bottom:6px;align-items:center;flex-wrap:wrap}
   .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
   .chart-guide{position:absolute;width:1px;background:rgba(79,70,229,.35);
         pointer-events:none;opacity:0;transition:opacity .12s;z-index:5}
@@ -124,12 +129,11 @@
   <header>
     <div>
       <h1>新品数据追踪看板</h1>
-      <div class="sub">基础建设期（推广消耗 = 0） vs 付费推广期（推广消耗 &gt; 0） · 商品可下拉选择、搜索或直接输入 ID</div>
+      <div class="sub">基础建设期（推广消耗 = 0） vs 付费推广期（推广消耗 &gt; 0） · 按阶段第N天对齐 · 缺失日期跳过</div>
     </div>
     <div class="tag">数据源：商品360-核心概况</div>
   </header>
 
-  <!-- 筛选 -->
   <div class="card filters">
     <label>开始日期<input type="date" id="startDate"></label>
     <label>结束日期<input type="date" id="endDate"></label>
@@ -141,7 +145,6 @@
     </div>
   </div>
 
-  <!-- 商品对比：下拉 + 搜索 + 直接输入 -->
   <div class="card">
     <h2>商品对比 <small>点 ▾ 展开列表（右侧可见商品图），也可直接输入 ID 后回车</small></h2>
     <div class="products">
@@ -151,37 +154,58 @@
     </div>
   </div>
 
-  <!-- 差异分析 -->
   <div class="card">
     <h2>差异分析 <small>全区间合计：当前商品 vs 对比品</small></h2>
     <table class="tbl" id="diffTable"></table>
   </div>
 
-  <!-- 趋势图 -->
   <div class="grid2">
     <div class="card">
-      <h2>访客数趋势</h2>
+      <h2>访客数趋势
+        <select class="chart-filter" id="filter1">
+          <option value="all">全部阶段</option>
+          <option value="base">仅基础建设期</option>
+          <option value="paid">仅付费推广期</option>
+        </select>
+      </h2>
       <div class="legend" id="lg1"></div>
       <div class="chart" id="chart1"></div>
     </div>
     <div class="card">
-      <h2>加购率趋势</h2>
+      <h2>加购率趋势
+        <select class="chart-filter" id="filter2">
+          <option value="all">全部阶段</option>
+          <option value="base">仅基础建设期</option>
+          <option value="paid">仅付费推广期</option>
+        </select>
+      </h2>
       <div class="legend" id="lg2"></div>
       <div class="chart" id="chart2"></div>
     </div>
     <div class="card">
-      <h2>推广消耗趋势</h2>
+      <h2>推广消耗趋势
+        <select class="chart-filter" id="filter3">
+          <option value="all">全部阶段</option>
+          <option value="base">仅基础建设期</option>
+          <option value="paid" selected>仅付费推广期</option>
+        </select>
+      </h2>
       <div class="legend" id="lg3"></div>
       <div class="chart" id="chart3"></div>
     </div>
     <div class="card">
-      <h2>支付转化率趋势</h2>
+      <h2>支付转化率趋势
+        <select class="chart-filter" id="filter4">
+          <option value="all">全部阶段</option>
+          <option value="base">仅基础建设期</option>
+          <option value="paid">仅付费推广期</option>
+        </select>
+      </h2>
       <div class="legend" id="lg4"></div>
       <div class="chart" id="chart4"></div>
     </div>
   </div>
 
-  <!-- 明细 -->
   <div class="card">
     <h2>分日明细 <small>按筛选区间与当前商品展示</small></h2>
     <div class="scroll">
@@ -192,14 +216,6 @@
 </div>
 
 <script>
-/* ============================================================
-   ① 商品图片配置区
-   ------------------------------------------------------------
-   图片放在本 HTML 同目录的 images 文件夹里，命名用商品ID：
-     images/1096452388606.jpg
-   未登记的商品会自动按 images/商品ID.jpg 尝试加载，
-   加载失败则显示首字占位图。
-   ============================================================ */
 const PRODUCT_IMAGES = {
   '1090113453795': 'images/1090113453795.jpg',
   '1095012795355': 'images/1095012795355.jpg',
@@ -211,9 +227,7 @@ const PRODUCT_IMAGES = {
   '1099421520483': 'images/1099421520483.jpg'
 };
 
-/* ========================= 数据 ========================= */
 const RAW = [
-  /* ---- 1090113453795 ---- */
   ['2026-11-08','1090113453795',3303,1218,118,14,993.78,5.81],
   ['2026-11-07','1090113453795',3247,1357,134,11,996.76,4.36],
   ['2026-11-06','1090113453795',2303, 926, 84,12,600.00,6.53],
@@ -238,23 +252,19 @@ const RAW = [
   ['2026-10-18','1090113453795',  63,  24,  3, 0,  0.00,0.00],
   ['2026-10-17','1090113453795',  79,  24,  1, 0,  0.00,0.00],
   ['2026-10-16','1090113453795',  71,  24,  4, 0,  0.00,0.00],
-  ['2026-10-15','1090113453795',  54,  27, 10, 5,  0.00,0.00],
   ['2026-10-14','1090113453795',  74,  32,  3, 0,  0.00,0.00],
   ['2026-10-13','1090113453795',  45,  29,  0, 0,  0.00,0.00],
   ['2026-10-12','1090113453795',  59,  38,  5, 0,  0.00,0.00],
   ['2026-10-11','1090113453795',  55,  30,  4, 1,  0.00,0.00],
   ['2026-10-10','1090113453795',  33,  25,  2, 0,  0.00,0.00],
-  /* ---- 1095012795355 ---- */
   ['2026-11-08','1095012795355', 98, 57, 4, 0, 20.58,0],
   ['2026-11-07','1095012795355', 63, 34, 0, 1,  1.23,0],
   ['2026-11-06','1095012795355', 80, 31, 4, 0,  0.00,0],
   ['2026-11-05','1095012795355', 58, 35, 3, 1,  0.00,0],
   ['2026-11-04','1095012795355', 62, 46, 0, 0,  0.00,0],
-  /* ---- 1095739571948 ---- */
   ['2026-11-08','1095739571948', 33, 27, 2, 0,  0.00,0],
   ['2026-11-07','1095739571948', 33, 26, 0, 0,  0.00,0],
   ['2026-11-06','1095739571948', 37, 30, 2, 0,  0.00,0],
-  /* ---- 1096452388606 ---- */
   ['2026-11-08','1096452388606',487,227,12, 2, 95.46,0],
   ['2026-11-07','1096452388606',327, 92,11, 2,  3.12,0],
   ['2026-11-06','1096452388606',212, 78, 7, 0,  0.00,0],
@@ -266,7 +276,6 @@ const RAW = [
   ['2026-10-31','1096452388606', 53, 37, 4, 0,  0.00,0],
   ['2026-10-30','1096452388606', 47, 35, 1, 0,  0.00,0],
   ['2026-10-29','1096452388606', 72, 50, 3, 0,  0.00,0],
-  /* ---- 1097439536171 ---- */
   ['2026-11-08','1097439536171',231,123, 4, 0, 72.21,0],
   ['2026-11-07','1097439536171',168, 88, 7, 1, 30.65,0],
   ['2026-11-06','1097439536171', 78, 39, 1, 0,  1.77,0],
@@ -275,13 +284,10 @@ const RAW = [
   ['2026-11-02','1097439536171', 76, 39, 4, 0,  0.00,0],
   ['2026-11-01','1097439536171', 48, 34, 2, 0,  0.00,0],
   ['2026-10-30','1097439536171',  9,  8, 2, 0,  0.00,0],
-  /* ---- 1097850357736 ---- */
   ['2026-11-08','1097850357736', 77, 60, 4, 0, 0,0],
   ['2026-11-07','1097850357736', 86, 70, 5, 0, 0,0],
   ['2026-11-06','1097850357736', 76, 51, 5, 0, 0,0],
-  /* ---- 1099418480288 ---- */
   ['2026-11-08','1099418480288', 44, 31, 3, 1, 0,0],
-  /* ---- 1099421520483 ---- */
   ['2026-11-08','1099421520483', 70, 41, 4, 1, 0,0]
 ].map(r => ({d:r[0], id:r[1], pv:r[2], uv:r[3], cart:r[4], payer:r[5], cost:r[6], roi:r[7]}));
 
@@ -299,10 +305,8 @@ const PRODUCTS = {
 const ALL_DATES = [...new Set(RAW.map(r => r.d))].sort();
 const MIN_DATE = ALL_DATES[0], MAX_DATE = ALL_DATES[ALL_DATES.length - 1];
 
-/* ========================= 状态 ========================= */
 const state = { start: MIN_DATE, end: MAX_DATE, pid: '1096452388606', cmpId: '1090113453795' };
 
-/* ========================= 工具函数 ========================= */
 const fmtInt   = v => (v || 0).toLocaleString('zh-CN');
 const fmtPct   = v => (v * 100).toFixed(2) + '%';
 const fmtMoney = v => '¥' + (v || 0).toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -318,19 +322,38 @@ function addDays(dstr, n){
   dt.setDate(dt.getDate() + n);
   return fmtDate(dt);
 }
-function dateRange(a, b){
-  const out = [], cur = new Date(a + 'T00:00:00'), end = new Date(b + 'T00:00:00');
-  while (cur <= end) { out.push(fmtDate(cur)); cur.setDate(cur.getDate() + 1); }
+function intRange(a, b){
+  const out = [];
+  for (let i = a; i <= b; i++) out.push(i);
   return out;
 }
 
-/* 单行衍生值 */
+const PHASE_CACHE = {};
+function phaseInfoOf(id){
+  if (PHASE_CACHE[id]) return PHASE_CACHE[id];
+  const rows = RAW.filter(r => r.id === id).slice().sort((a, b) => a.d < b.d ? -1 : 1);
+  const map = {};
+  if (!rows.length){ PHASE_CACHE[id] = map; return map; }
+
+  let baseIdx = 0, paidIdx = 0;
+  rows.forEach(r => {
+    if (r.cost > 0){
+      paidIdx++;
+      map[r.d] = { phase: 'paid', day: paidIdx };
+    } else {
+      baseIdx++;
+      map[r.d] = { phase: 'base', day: baseIdx };
+    }
+  });
+  PHASE_CACHE[id] = map;
+  return map;
+}
+
 const rowGMV  = r => r.cost > 0 ? r.cost * (r.roi || 0) : 0;
 const rowCartRate = r => r.uv ? r.cart / r.uv : 0;
 const rowPayRate  = r => r.uv ? r.payer / r.uv : 0;
 const rowCartCost = r => (r.cost > 0 && r.cart > 0) ? r.cost / r.cart : null;
 
-/* 聚合 */
 function aggregate(rows){
   const a = {pv:0, uv:0, cart:0, payer:0, cost:0, gmv:0, days:0};
   rows.forEach(r => {
@@ -348,7 +371,6 @@ function rowsOf(id){
   return RAW.filter(r => r.id === id && r.d >= state.start && r.d <= state.end);
 }
 
-/* ========================= 商品图片 ========================= */
 function imgSrcOf(id){
   return PRODUCT_IMAGES[id] || `images/${id}.jpg`;
 }
@@ -385,7 +407,6 @@ function loadImgInto(container, id){
   }
 }
 
-/* ========================= 商品卡（下拉 + 搜索 + 输入 ID） ========================= */
 function renderProdCard(elId, id, role, cls){
   const el = document.getElementById(elId);
   if (!el) return;
@@ -417,7 +438,6 @@ function bindCombo(elId){
 
   let isOpen = false, activeIdx = -1;
 
-  /* 生成列表（支持按 ID / 名称过滤） */
   function buildList(kw){
     const q = (kw || '').trim();
     const isIdLike = /^\d+$/.test(q);
@@ -471,20 +491,17 @@ function bindCombo(elId){
     render();
   }
 
-  /* 按钮：阻止失焦，切换面板 */
   btn.addEventListener('mousedown', e => e.preventDefault());
   btn.addEventListener('click', () => {
     if (isOpen){ closePanel(); }
     else { openPanel(); inp.focus(); }
   });
 
-  /* 输入时过滤 */
   inp.addEventListener('input', () => {
     if (!isOpen) openPanel();
     else buildList(inp.value);
   });
 
-  /* 键盘操作 */
   inp.addEventListener('keydown', e => {
     if (e.key === 'Enter'){
       e.preventDefault();
@@ -518,7 +535,6 @@ function bindCombo(elId){
     }
   });
 
-  /* 失焦：关闭面板并提交输入 */
   inp.addEventListener('blur', () => {
     setTimeout(() => {
       if (!document.body.contains(inp)) return;
@@ -527,7 +543,6 @@ function bindCombo(elId){
     }, 120);
   });
 
-  /* 面板内点击选择（mousedown 阻止失焦） */
   panel.addEventListener('mousedown', e => {
     if (e.target.closest('.combo-opt')) e.preventDefault();
   });
@@ -543,7 +558,6 @@ function renderProducts(){
   renderProdCard('prodCmp', state.cmpId, '对比品',   'cmp');
 }
 
-/* ========================= 图表（含 hover 提示） ========================= */
 function niceStep(x){
   if (x <= 0) return 1;
   const p = Math.pow(10, Math.floor(Math.log10(x)));
@@ -554,8 +568,8 @@ function niceStep(x){
   return m * p;
 }
 
-function chartEmpty(el){
-  el.innerHTML = '<div class="empty">该区间暂无数据</div>';
+function chartEmpty(el, msg){
+  el.innerHTML = `<div class="empty">${msg || '该区间暂无数据'}</div>`;
   el._meta = null;
 }
 
@@ -567,6 +581,8 @@ function drawChart(el, cfg){
   const iw = W - pad.l - pad.r;
   const ih = H - pad.t - pad.b;
   const labels = cfg.labels, n = labels.length, series = cfg.series;
+  const axisLabels = cfg.axisLabels || labels.map(l => String(l).slice(5));
+  const phaseFull  = cfg.phaseFull  || [];
 
   if (n === 0){ chartEmpty(el); return; }
 
@@ -597,7 +613,9 @@ function drawChart(el, cfg){
   const skip = Math.max(1, Math.ceil(n / 9));
   labels.forEach((lb, i) => {
     if (i % skip !== 0 && i !== n - 1) return;
-    svg += `<text x="${xOf(i)}" y="${H - 12}" text-anchor="middle" font-size="10" fill="#98a2b3">${lb.slice(5)}</text>`;
+    const txt = axisLabels[i];
+    if (!txt) return;
+    svg += `<text x="${xOf(i)}" y="${H - 12}" text-anchor="middle" font-size="10" fill="#98a2b3">${txt}</text>`;
   });
 
   series.forEach((s, si) => {
@@ -628,7 +646,7 @@ function drawChart(el, cfg){
   series.forEach((s, i) => { overlay += `<div class="chart-dot" data-i="${i}"></div>`; });
 
   el.innerHTML = svg + overlay;
-  el._meta = {n, xOf, yOf, labels, series, pad, W, H, iw, ih, fmtY: cfg.fmtY, type: cfg.type};
+  el._meta = {n, xOf, yOf, labels, axisLabels, phaseFull, series, pad, W, H, iw, ih, fmtY: cfg.fmtY, type: cfg.type};
 
   if (!el._bound){
     el._bound = true;
@@ -678,7 +696,8 @@ function onChartMove(el, e){
 
   const tip = el.querySelector('.chart-tip');
   if (tip){
-    let html = `<div class="t">${m.labels[idx]}</div>`;
+    const title = (m.phaseFull && m.phaseFull[idx]) ? m.phaseFull[idx] : m.labels[idx];
+    let html = `<div class="t">${title}</div>`;
     m.series.forEach(s => {
       const v = s.data[idx] || 0;
       html += `<div class="r"><span><i style="background:${s.color}"></i>${s.name}</span><b>${m.fmtY ? m.fmtY(v) : v}</b></div>`;
@@ -708,11 +727,11 @@ function onChartLeave(el){
   if (tip) tip.classList.remove('show');
 }
 
-function legend(el, items){
-  el.innerHTML = items.map(it => `<span><i style="background:${it.color}"></i>${it.name}</span>`).join('');
+function legend(el, items, note){
+  el.innerHTML = items.map(it => `<span><i style="background:${it.color}"></i>${it.name}</span>`).join('')
+    + (note ? `<span style="margin-left:auto;font-size:11px;color:#98a2b3">${note}</span>` : '');
 }
 
-/* ========================= 渲染 ========================= */
 function renderDiffTable(){
   const cur = aggregate(rowsOf(state.pid));
   const cmp = aggregate(rowsOf(state.cmpId));
@@ -769,73 +788,95 @@ function renderDiffTable(){
   document.getElementById('diffTable').innerHTML = html;
 }
 
+/* ============================================================
+   图表渲染（支持每个图表独立筛选阶段）
+   ============================================================ */
 function renderCharts(){
-  const labels = dateRange(state.start, state.end);
-  const curMap = {}, cmpMap = {};
-  rowsOf(state.pid).forEach(r => curMap[r.d] = r);
-  rowsOf(state.cmpId).forEach(r => cmpMap[r.d] = r);
+  const curInfo = phaseInfoOf(state.pid);
+  const cmpInfo = phaseInfoOf(state.cmpId);
 
-  const pick = (map, key) => labels.map(d => {
-    const r = map[d];
-    if (!r) return 0;
-    if (key === 'payRate')  return r.uv ? r.payer / r.uv : 0;
-    if (key === 'cartRate') return r.uv ? r.cart  / r.uv : 0;
-    return r[key] || 0;
+  const curBase = {}, curPaid = {}, cmpBase = {}, cmpPaid = {};
+  rowsOf(state.pid).forEach(r => {
+    const p = curInfo[r.d];
+    if (!p) return;
+    (p.phase === 'base' ? curBase : curPaid)[p.day] = r;
   });
+  rowsOf(state.cmpId).forEach(r => {
+    const p = cmpInfo[r.d];
+    if (!p) return;
+    (p.phase === 'base' ? cmpBase : cmpPaid)[p.day] = r;
+  });
+
+  const curBaseMax = Math.max(0, ...Object.keys(curBase).map(Number));
+  const cmpBaseMax = Math.max(0, ...Object.keys(cmpBase).map(Number));
+  const baseMax = Math.max(curBaseMax, cmpBaseMax);
+
+  const curPaidMax = Math.max(0, ...Object.keys(curPaid).map(Number));
+  const cmpPaidMax = Math.max(0, ...Object.keys(cmpPaid).map(Number));
+  const paidMax = Math.max(curPaidMax, cmpPaidMax);
 
   const C_CUR = '#4f46e5', C_CMP = '#f59e0b';
 
-  legend(document.getElementById('lg1'), [
-    {name:'当前商品', color:C_CUR}, {name:'对比品', color:C_CMP}
-  ]);
-  drawChart(document.getElementById('chart1'), {
-    labels, type:'line',
-    series:[
-      {name:'当前商品', color:C_CUR, data:pick(curMap,'uv')},
-      {name:'对比品',   color:C_CMP, data:pick(cmpMap,'uv'), dash:true}
-    ],
-    fmtY: v => Math.round(v).toLocaleString('zh-CN')
-  });
+  // 根据下拉筛选生成图表坐标系
+  function getChartConfig(filterType) {
+    let points = [];
+    if (filterType === 'all') {
+      points = [
+        ...intRange(1, baseMax).map(d => ({phase: 'base', day: d})),
+        ...intRange(1, paidMax).map(d => ({phase: 'paid', day: d}))
+      ];
+    } else if (filterType === 'base') {
+      points = intRange(1, baseMax).map(d => ({phase: 'base', day: d}));
+    } else if (filterType === 'paid') {
+      points = intRange(1, paidMax).map(d => ({phase: 'paid', day: d}));
+    }
 
-  legend(document.getElementById('lg2'), [
-    {name:'当前商品', color:C_CUR}, {name:'对比品', color:C_CMP}
-  ]);
-  drawChart(document.getElementById('chart2'), {
-    labels, type:'line',
-    series:[
-      {name:'当前商品', color:C_CUR, data:pick(curMap,'cartRate')},
-      {name:'对比品',   color:C_CMP, data:pick(cmpMap,'cartRate'), dash:true}
-    ],
-    fmtY: v => (v * 100).toFixed(1) + '%'
-  });
+    const axisLabels = points.map(p => p.phase === 'base' ? '基础' + p.day : '付费' + p.day);
+    const phaseFull  = points.map(p => p.phase === 'base' ? '基础建设期第' + p.day + '天' : '付费推广期第' + p.day + '天');
+    
+    let note = 'X轴：按阶段第N天对齐 · 缺失按0计';
+    if (filterType === 'base') note = 'X轴：仅基础建设期 · 缺失按0计';
+    if (filterType === 'paid') note = 'X轴：仅付费推广期 · 缺失按0计';
 
-  legend(document.getElementById('lg3'), [
-    {name:'当前商品', color:C_CUR}, {name:'对比品', color:C_CMP}
-  ]);
-  drawChart(document.getElementById('chart3'), {
-    labels, type:'bar',
-    series:[
-      {name:'当前商品', color:C_CUR, data:pick(curMap,'cost')},
-      {name:'对比品',   color:C_CMP, data:pick(cmpMap,'cost')}
-    ],
-    fmtY: v => '¥' + Math.round(v).toLocaleString('zh-CN')
-  });
+    return { points, axisLabels, phaseFull, note };
+  }
 
-  legend(document.getElementById('lg4'), [
-    {name:'当前商品', color:C_CUR}, {name:'对比品', color:C_CMP}
-  ]);
-  drawChart(document.getElementById('chart4'), {
-    labels, type:'line',
-    series:[
-      {name:'当前商品', color:C_CUR, data:pick(curMap,'payRate')},
-      {name:'对比品',   color:C_CMP, data:pick(cmpMap,'payRate'), dash:true}
-    ],
-    fmtY: v => (v * 100).toFixed(1) + '%'
-  });
+  function pickData(points, mapBase, mapPaid, key) {
+    return points.map(p => {
+      const r = p.phase === 'base' ? mapBase[p.day] : mapPaid[p.day];
+      if (!r) return 0;
+      if (key === 'payRate')  return r.uv ? r.payer / r.uv : 0;
+      if (key === 'cartRate') return r.uv ? r.cart  / r.uv : 0;
+      return r[key] || 0;
+    });
+  }
+
+  // 通用渲染函数
+  function renderSingleChart(chartId, legendId, filterId, type, key, fmtY) {
+    const filterType = document.getElementById(filterId).value;
+    const cfg = getChartConfig(filterType);
+    
+    legend(document.getElementById(legendId), [{name:'当前商品', color:C_CUR}, {name:'对比品', color:C_CMP}], cfg.note);
+    
+    drawChart(document.getElementById(chartId), {
+      labels: cfg.axisLabels, axisLabels: cfg.axisLabels, phaseFull: cfg.phaseFull, type: type,
+      series: [
+        {name:'当前商品', color:C_CUR, data: pickData(cfg.points, curBase, curPaid, key)},
+        {name:'对比品',   color:C_CMP, data: pickData(cfg.points, cmpBase, cmpPaid, key), dash:true}
+      ],
+      fmtY: fmtY
+    });
+  }
+
+  renderSingleChart('chart1', 'lg1', 'filter1', 'line', 'uv', v => Math.round(v).toLocaleString('zh-CN'));
+  renderSingleChart('chart2', 'lg2', 'filter2', 'line', 'cartRate', v => (v * 100).toFixed(1) + '%');
+  renderSingleChart('chart3', 'lg3', 'filter3', 'bar', 'cost', v => '¥' + Math.round(v).toLocaleString('zh-CN'));
+  renderSingleChart('chart4', 'lg4', 'filter4', 'line', 'payRate', v => (v * 100).toFixed(1) + '%');
 }
 
 function renderDetail(){
   const rows = rowsOf(state.pid).slice().sort((a, b) => a.d < b.d ? 1 : -1);
+  const phaseMap = phaseInfoOf(state.pid);
 
   let html = `<thead><tr>
     <th class="l">日期</th>
@@ -858,7 +899,10 @@ function renderDetail(){
   }
 
   rows.forEach(r => {
-    const paid = r.cost > 0;
+    const ph       = phaseMap[r.d] || {};
+    const isPaid   = ph.phase === 'paid';
+    const paidCost = r.cost > 0;
+
     html += `<tr>
       <td class="l">${r.d}</td>
       <td class="l">${r.id}</td>
@@ -868,11 +912,14 @@ function renderDetail(){
       <td>${fmtPct(rowCartRate(r))}</td>
       <td>${fmtInt(r.payer)}</td>
       <td>${fmtPct(rowPayRate(r))}</td>
-      <td>${paid ? fmtMoney(r.cost) : '<span class="muted">¥0.00</span>'}</td>
+      <td>${paidCost ? fmtMoney(r.cost) : '<span class="muted">¥0.00</span>'}</td>
       <td class="muted">—</td>
-      <td>${paid ? fmtMoney(rowGMV(r)) : '<span class="muted">—</span>'}</td>
+      <td>${paidCost ? fmtMoney(rowGMV(r)) : '<span class="muted">—</span>'}</td>
       <td>${fmtCost(rowCartCost(r))}</td>
-      <td class="l"><span class="badge ${paid ? 'paid' : 'base'}">${paid ? '付费推广' : '基础建设期'}</span></td>
+      <td class="l">
+        <span class="badge ${isPaid ? 'paid' : 'base'}">${isPaid ? '付费推广期' : '基础建设期'}</span>
+        <span class="muted" style="font-size:11px;margin-left:4px">第${ph.day || '?'}天</span>
+      </td>
     </tr>`;
   });
 
@@ -887,7 +934,6 @@ function render(){
   renderDetail();
 }
 
-/* ========================= 初始化 ========================= */
 function init(){
   const si = document.getElementById('startDate');
   const ei = document.getElementById('endDate');
@@ -925,6 +971,11 @@ function init(){
       markQuick(btn);
       render();
     });
+  });
+
+  // 绑定图表独立筛选事件
+  [1, 2, 3, 4].forEach(i => {
+    document.getElementById('filter' + i).addEventListener('change', renderCharts);
   });
 
   let t = null;
