@@ -29,11 +29,7 @@
   .chart-filter:focus{border-color:#4f46e5; box-shadow:0 0 0 2px rgba(79,70,229,.1)}
 
   .filters{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap}
-  .filters label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:#667085;font-weight:600}
-  .filters input{padding:7px 10px;border:1px solid #d9dee8;border-radius:8px;
-        font-size:13px;color:#1f2937;background:#fff;outline:none;min-width:150px}
-  .filters input:focus{border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1)}
-  .quick{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+  .quick{display:flex;gap:8px;flex-wrap:wrap}
   .quick button{padding:7px 16px;border:1px solid #d9dee8;background:#fff;border-radius:8px;
         cursor:pointer;font-size:12.5px;color:#475467;transition:.15s;font-family:inherit;font-weight:600}
   .quick button:hover{border-color:#4f46e5;color:#4f46e5;background:#f5f6ff}
@@ -138,8 +134,6 @@
   </header>
 
   <div class="card filters">
-    <label>开始日期<input type="date" id="startDate"></label>
-    <label>结束日期<input type="date" id="endDate"></label>
     <div class="quick" id="phaseSwitch">
       <button data-phase="base" class="on">基础建设期</button>
       <button data-phase="paid">付费推广期</button>
@@ -165,7 +159,6 @@
       口径说明：数量类指标（浏览量、访客数、搜索访客数、加购人数、支付买家数、推广消耗）为该阶段<b>合计值</b>，不做日均、不取整；
       率值类（加购率、支付转化率、搜索加购转化率）为<b>日均口径</b>（每日率的算术平均，仅统计有效天）；
       PPC = 阶段推广消耗合计 ÷ 阶段访客数合计；访客数标准按日均给出，判定时换算为「日均 × 阶段天数」的合计区间。
-      本板块受左上角日期筛选控制。
     </div>
     <table class="tbl" id="diffTable"></table>
   </div>
@@ -240,7 +233,7 @@
   </div>
 
   <div class="card">
-    <h2>分日明细 <small>按筛选区间与当前商品展示</small></h2>
+    <h2>分日明细 <small>按当前商品展示全部数据</small></h2>
     <div class="scroll">
       <table class="tbl sticky" id="detailTable"></table>
     </div>
@@ -429,12 +422,7 @@ const PRODUCTS = {
   '1092440033491': '巢尔仿貂绒四件套冬天加厚保暖牛奶珊瑚绒床单被套高级感床品套件'
 };
 
-const ALL_DATES = [...new Set(RAW.map(r => r.d))].sort();
-const MIN_DATE = ALL_DATES[0], MAX_DATE = ALL_DATES[ALL_DATES.length - 1];
-
 const state = {
-  start: MIN_DATE,
-  end: MAX_DATE,
   phase: 'base',
   pid: '1090113453795',
   cmpId: '1097850357736'
@@ -445,10 +433,6 @@ const fmtInt   = v => (v || 0).toLocaleString('zh-CN');
 const fmtPct   = v => (v * 100).toFixed(2) + '%';
 const fmtMoney = v => '¥' + (v || 0).toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2});
 
-function fmtDate(d){
-  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
-  return `${y}-${m}-${dd}`;
-}
 function dailyAvg(rows, fn){
   const vals = [];
   rows.forEach(r => {
@@ -506,11 +490,9 @@ function aggregate(rows){
   return a;
 }
 
-function aggregatePhase(id, phase, start, end){
+function aggregatePhase(id, phase){
   const map = phaseInfoOf(id);
   let rows = RAW.filter(r => r.id === id && map[r.d] && map[r.d].phase === phase);
-  if (start) rows = rows.filter(r => r.d >= start);
-  if (end) rows = rows.filter(r => r.d <= end);
   rows = rows.slice().sort((a, b) => a.d < b.d ? -1 : 1);
 
   const a = aggregate(rows);
@@ -522,7 +504,7 @@ function aggregatePhase(id, phase, start, end){
 }
 
 function rowsOf(id){
-  return RAW.filter(r => r.id === id && r.d >= state.start && r.d <= state.end);
+  return RAW.filter(r => r.id === id);
 }
 
 /* ==================== 图片 ==================== */
@@ -1032,14 +1014,14 @@ function evaluate(it, v, hasV, cur){
 function renderDiffTable(){
   const phase = state.phase;
   const phaseName = phase === 'base' ? '基础建设期' : '付费推广期';
-  const cur  = aggregatePhase(state.pid, phase, state.start, state.end);
+  const cur  = aggregatePhase(state.pid, phase);
   const list = STANDARDS[phase];
 
   const noteEl = document.getElementById('diffNote');
   if (noteEl){
     noteEl.textContent = cur.days > 0
-      ? `${phaseName} · ${state.start} ~ ${state.end} · 共 ${cur.days} 天（受日期筛选控制）`
-      : `${phaseName}在所选日期范围内无数据`;
+      ? `${phaseName} · 共 ${cur.days} 天`
+      : `${phaseName}暂无数据`;
   }
 
   let html = `<thead><tr>
@@ -1052,7 +1034,7 @@ function renderDiffTable(){
   </tr></thead><tbody>`;
 
   if (cur.days === 0){
-    html += `<tr><td colspan="6" class="empty">该商品在${phaseName}所选日期范围内暂无数据</td></tr>`;
+    html += `<tr><td colspan="6" class="empty">该商品在${phaseName}暂无数据</td></tr>`;
   } else {
     list.forEach(it => {
       const v = cur[it.key];
@@ -1090,7 +1072,6 @@ function renderCharts(){
     (p.phase === 'base' ? cmpBase : cmpPaid)[p.day] = r;
   });
 
-  // 改为从筛选后的数据中提取当前存在的天数，确保图表跟随日期筛选联动
   const baseDays = new Set([...Object.keys(curBase).map(Number), ...Object.keys(cmpBase).map(Number)]);
   const paidDays = new Set([...Object.keys(curPaid).map(Number), ...Object.keys(cmpPaid).map(Number)]);
   const baseArr = [...baseDays].sort((a, b) => a - b);
@@ -1183,7 +1164,7 @@ function renderDetail(){
   </tr></thead><tbody>`;
 
   if (rows.length === 0){
-    html += `<tr><td colspan="14" class="empty">该商品在所选日期区间内无数据</td></tr>`;
+    html += `<tr><td colspan="14" class="empty">该商品暂无数据</td></tr>`;
   }
 
   rows.forEach(r => {
@@ -1217,54 +1198,15 @@ function renderDetail(){
   document.getElementById('detailTable').innerHTML = html;
 }
 
-/* ==================== 日期边界 ==================== */
-function availableRange(){
-  const ids = [state.pid, state.cmpId];
-  const set = new Set();
-  RAW.forEach(r => { if (ids.includes(r.id)) set.add(r.d); });
-  const arr = [...set].sort();
-  return arr.length ? {min: arr[0], max: arr[arr.length - 1]} : {min: MIN_DATE, max: MAX_DATE};
-}
-
-function syncDateBounds(){
-  const {min, max} = availableRange();
-  const si = document.getElementById('startDate');
-  const ei = document.getElementById('endDate');
-  si.min = min; si.max = max;
-  ei.min = min; ei.max = max;
-  if (state.start < min || state.start > max) state.start = min;
-  if (state.end   < min || state.end   > max) state.end   = max;
-  if (state.start > state.end) state.start = state.end;
-  si.value = state.start;
-  ei.value = state.end;
-}
-
 /* ==================== 主渲染 ==================== */
 function render(){
   renderProducts();
-  syncDateBounds();
   renderDiffTable();
   renderCharts();
   renderDetail();
 }
 
 function init(){
-  const si = document.getElementById('startDate');
-  const ei = document.getElementById('endDate');
-
-  si.addEventListener('change', () => {
-    if (!si.value) return;
-    state.start = si.value > state.end ? state.end : si.value;
-    si.value = state.start;
-    render();
-  });
-  ei.addEventListener('change', () => {
-    if (!ei.value) return;
-    state.end = ei.value < state.start ? state.start : ei.value;
-    ei.value = state.end;
-    render();
-  });
-
   document.querySelectorAll('#phaseSwitch button').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#phaseSwitch button').forEach(b => b.classList.remove('on'));
