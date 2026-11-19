@@ -15,12 +15,11 @@
   .tag{background:#eef2ff;color:#4f46e5;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600}
   .card{background:#fff;border-radius:14px;padding:18px 20px;margin-bottom:16px;
         box-shadow:0 1px 3px rgba(16,24,40,.06),0 1px 2px rgba(16,24,40,.04)}
-  
+
   h2{font-size:14.5px;margin:0 0 14px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   h2::before{content:"";width:3px;height:14px;background:#4f46e5;border-radius:2px}
   h2 small{font-weight:400;color:#98a2b3;font-size:11.5px;margin-left:4px}
 
-  /* 新增：图表右上角筛选器样式 */
   .chart-filter{
     margin-left:auto; padding:4px 8px; border:1px solid #d9dee8; border-radius:6px;
     font-size:12px; color:#475467; background:#fff; outline:none; cursor:pointer;
@@ -35,10 +34,13 @@
         font-size:13px;color:#1f2937;background:#fff;outline:none;min-width:150px}
   .filters input:focus{border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1)}
   .quick{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
-  .quick button{padding:7px 14px;border:1px solid #d9dee8;background:#fff;border-radius:8px;
-        cursor:pointer;font-size:12.5px;color:#475467;transition:.15s}
+  .quick button{padding:7px 16px;border:1px solid #d9dee8;background:#fff;border-radius:8px;
+        cursor:pointer;font-size:12.5px;color:#475467;transition:.15s;font-family:inherit;font-weight:600}
   .quick button:hover{border-color:#4f46e5;color:#4f46e5;background:#f5f6ff}
   .quick button.on{background:#4f46e5;border-color:#4f46e5;color:#fff}
+  .phase-note{flex-basis:100%;margin-top:2px;font-size:11.5px;color:#98a2b3;line-height:1.7;
+        display:flex;gap:18px;flex-wrap:wrap}
+  .phase-note b{color:#667085;font-weight:600}
 
   .products{display:flex;gap:16px;align-items:stretch}
   .prod{flex:1;display:flex;gap:14px;align-items:flex-start;padding:12px 14px;border-radius:12px;
@@ -121,6 +123,7 @@
   .empty{text-align:center;color:#98a2b3;padding:26px 0;font-size:12.5px}
   .sticky thead th{position:sticky;top:0;z-index:2}
   .scroll{max-height:520px;overflow:auto;border-radius:10px}
+  .note{font-size:11.5px;color:#98a2b3;margin:-6px 0 12px;line-height:1.7}
 </style>
 </head>
 <body>
@@ -129,7 +132,7 @@
   <header>
     <div>
       <h1>新品数据追踪看板</h1>
-      <div class="sub">基础建设期（推广消耗 = 0） vs 付费推广期（推广消耗 &gt; 0） · 按阶段第N天对齐 · 缺失日期跳过</div>
+      <div class="sub">基础建设期（未开付费，前5天） vs 付费推广期（开付费后7天） · 按阶段第N天对齐 · 缺失日期跳过</div>
     </div>
     <div class="tag">数据源：商品360-核心概况</div>
   </header>
@@ -137,11 +140,13 @@
   <div class="card filters">
     <label>开始日期<input type="date" id="startDate"></label>
     <label>结束日期<input type="date" id="endDate"></label>
-    <div class="quick">
-      <button data-days="7">近7天</button>
-      <button data-days="14">近14天</button>
-      <button data-days="30">近30天</button>
-      <button data-days="0" class="on">全部</button>
+    <div class="quick" id="phaseSwitch">
+      <button data-phase="base" class="on">基础建设期</button>
+      <button data-phase="paid">付费推广期</button>
+    </div>
+    <div class="phase-note">
+      <span><b>基础建设期：</b>商品未开付费，从上架第一天到第五天（去除刷单）</span>
+      <span><b>付费推广期：</b>商品开付费第一天到第七天</span>
     </div>
   </div>
 
@@ -155,7 +160,13 @@
   </div>
 
   <div class="card">
-    <h2>差异分析 <small>全区间合计：当前商品 vs 对比品</small></h2>
+    <h2>差异分析 <small id="diffNote"></small></h2>
+    <div class="note">
+      口径说明：数量类指标（浏览量、访客数、搜索访客数、加购人数、支付买家数、推广消耗）为该阶段<b>合计值</b>，不做日均、不取整；
+      率值类（加购率、支付转化率、搜索加购转化率）为<b>日均口径</b>（每日率的算术平均，仅统计有效天）；
+      PPC = 阶段推广消耗合计 ÷ 阶段访客数合计；访客数标准按日均给出，判定时换算为「日均 × 阶段天数」的合计区间。
+      本板块受左上角日期筛选控制。
+    </div>
     <table class="tbl" id="diffTable"></table>
   </div>
 
@@ -204,6 +215,28 @@
       <div class="legend" id="lg4"></div>
       <div class="chart" id="chart4"></div>
     </div>
+    <div class="card">
+      <h2>PPC 趋势 <small>推广消耗 ÷ 访客数</small>
+        <select class="chart-filter" id="filter5">
+          <option value="all">全部阶段</option>
+          <option value="base">仅基础建设期</option>
+          <option value="paid" selected>仅付费推广期</option>
+        </select>
+      </h2>
+      <div class="legend" id="lg5"></div>
+      <div class="chart" id="chart5"></div>
+    </div>
+    <div class="card">
+      <h2>搜索加购转化率趋势
+        <select class="chart-filter" id="filter6">
+          <option value="all">全部阶段</option>
+          <option value="base">仅基础建设期</option>
+          <option value="paid" selected>仅付费推广期</option>
+        </select>
+      </h2>
+      <div class="legend" id="lg6"></div>
+      <div class="chart" id="chart6"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -216,118 +249,217 @@
 </div>
 
 <script>
+/* ==================== 基础数据 ==================== */
 const PRODUCT_IMAGES = {
   '1090113453795': 'images/1090113453795.jpg',
-  '1095012795355': 'images/1095012795355.jpg',
-  '1095739571948': 'images/1095739571948.jpg',
-  '1096452388606': 'images/1096452388606.jpg',
-  '1097439536171': 'images/1097439536171.jpg',
   '1097850357736': 'images/1097850357736.jpg',
   '1099418480288': 'images/1099418480288.jpg',
-  '1099421520483': 'images/1099421520483.jpg'
+  '1099421520483': 'images/1099421520483.jpg',
+  '1093309243098': 'images/1093309243098.jpg',
+  '1096389612726': 'images/1096389612726.jpg',
+  '1092440033491': 'images/1092440033491.jpg'
 };
 
+/* 数据格式：[日期, 商品ID, 浏览量(pv), 访客数(uv), 加购数(cart), 支付买家数(payer), 推广消耗(cost), ROI, 搜索访客数(sv), 搜索加购率(sc)] */
 const RAW = [
-  ['2026-11-08','1090113453795',3303,1218,118,14,993.78,5.81],
-  ['2026-11-07','1090113453795',3247,1357,134,11,996.76,4.36],
-  ['2026-11-06','1090113453795',2303, 926, 84,12,600.00,6.53],
-  ['2026-11-05','1090113453795',1780, 881, 57, 5,485.80,2.02],
-  ['2026-11-04','1090113453795',1568, 898, 31, 6,341.73,8.78],
-  ['2026-11-03','1090113453795',1572, 589, 56, 4,351.72,0.00],
-  ['2026-11-02','1090113453795',2003, 813, 65, 4,457.22,0.00],
-  ['2026-11-01','1090113453795',1086, 455, 40, 6,296.31,4.86],
-  ['2026-10-31','1090113453795', 990, 386, 33, 5,293.49,4.87],
-  ['2026-10-30','1090113453795', 561, 175, 17, 4,152.31,0.00],
-  ['2026-10-29','1090113453795', 858, 535, 24, 5,142.67,3.43],
-  ['2026-10-28','1090113453795', 775, 282, 20, 3,300.00,1.63],
-  ['2026-10-27','1090113453795',1168, 594, 24, 5,285.07,6.45],
-  ['2026-10-26','1090113453795', 495, 229,  9, 4, 50.00,48.99],
-  ['2026-10-25','1090113453795', 468, 289, 10, 3, 50.00,0.00],
-  ['2026-10-24','1090113453795', 435, 225,  9, 2, 50.00,19.00],
-  ['2026-10-23','1090113453795', 376, 148,  9, 4, 45.16,0.00],
-  ['2026-10-22','1090113453795', 181,  58,  7, 2,  0.00,0.00],
-  ['2026-10-21','1090113453795', 168,  44, 11, 1,  0.00,0.00],
-  ['2026-10-20','1090113453795', 127,  26,  2, 1,  0.00,0.00],
-  ['2026-10-19','1090113453795', 101,  28,  4, 1,  0.00,0.00],
-  ['2026-10-18','1090113453795',  63,  24,  3, 0,  0.00,0.00],
-  ['2026-10-17','1090113453795',  79,  24,  1, 0,  0.00,0.00],
-  ['2026-10-16','1090113453795',  71,  24,  4, 0,  0.00,0.00],
-  ['2026-10-14','1090113453795',  74,  32,  3, 0,  0.00,0.00],
-  ['2026-10-13','1090113453795',  45,  29,  0, 0,  0.00,0.00],
-  ['2026-10-12','1090113453795',  59,  38,  5, 0,  0.00,0.00],
-  ['2026-10-11','1090113453795',  55,  30,  4, 1,  0.00,0.00],
-  ['2026-10-10','1090113453795',  33,  25,  2, 0,  0.00,0.00],
-  ['2026-11-08','1095012795355', 98, 57, 4, 0, 20.58,0],
-  ['2026-11-07','1095012795355', 63, 34, 0, 1,  1.23,0],
-  ['2026-11-06','1095012795355', 80, 31, 4, 0,  0.00,0],
-  ['2026-11-05','1095012795355', 58, 35, 3, 1,  0.00,0],
-  ['2026-11-04','1095012795355', 62, 46, 0, 0,  0.00,0],
-  ['2026-11-08','1095739571948', 33, 27, 2, 0,  0.00,0],
-  ['2026-11-07','1095739571948', 33, 26, 0, 0,  0.00,0],
-  ['2026-11-06','1095739571948', 37, 30, 2, 0,  0.00,0],
-  ['2026-11-08','1096452388606',487,227,12, 2, 95.46,0],
-  ['2026-11-07','1096452388606',327, 92,11, 2,  3.12,0],
-  ['2026-11-06','1096452388606',212, 78, 7, 0,  0.00,0],
-  ['2026-11-05','1096452388606',171, 67, 5, 1,  0.00,0],
-  ['2026-11-04','1096452388606',212, 44, 7, 2,  0.00,0],
-  ['2026-11-03','1096452388606',102, 47, 1, 0,  0.00,0],
-  ['2026-11-02','1096452388606', 65, 49, 2, 0,  0.00,0],
-  ['2026-11-01','1096452388606', 62, 40, 3, 0,  0.00,0],
-  ['2026-10-31','1096452388606', 53, 37, 4, 0,  0.00,0],
-  ['2026-10-30','1096452388606', 47, 35, 1, 0,  0.00,0],
-  ['2026-10-29','1096452388606', 72, 50, 3, 0,  0.00,0],
-  ['2026-11-08','1097439536171',231,123, 4, 0, 72.21,0],
-  ['2026-11-07','1097439536171',168, 88, 7, 1, 30.65,0],
-  ['2026-11-06','1097439536171', 78, 39, 1, 0,  1.77,0],
-  ['2026-11-05','1097439536171', 51, 36, 1, 0,  7.89,0],
-  ['2026-11-04','1097439536171', 90, 63, 2, 0, 33.36,0],
-  ['2026-11-02','1097439536171', 76, 39, 4, 0,  0.00,0],
-  ['2026-11-01','1097439536171', 48, 34, 2, 0,  0.00,0],
-  ['2026-10-30','1097439536171',  9,  8, 2, 0,  0.00,0],
-  ['2026-11-08','1097850357736', 77, 60, 4, 0, 0,0],
-  ['2026-11-07','1097850357736', 86, 70, 5, 0, 0,0],
-  ['2026-11-06','1097850357736', 76, 51, 5, 0, 0,0],
-  ['2026-11-08','1099418480288', 44, 31, 3, 1, 0,0],
-  ['2026-11-08','1099421520483', 70, 41, 4, 1, 0,0]
-].map(r => ({d:r[0], id:r[1], pv:r[2], uv:r[3], cart:r[4], payer:r[5], cost:r[6], roi:r[7]}));
+  // ===== 1092440033491 =====
+  ['2026-10-17','1092440033491',22,11,2,0,0,null,2,0],
+  ['2026-10-18','1092440033491',21,16,1,0,0,null,2,0],
+  ['2026-10-19','1092440033491',24,17,1,0,0,null,3,0],
+  ['2026-10-20','1092440033491',76,20,1,2,0,null,2,0],
+  ['2026-10-21','1092440033491',64,35,3,0,0,null,3,0.3333],
+  ['2026-10-22','1092440033491',151,36,7,1,0,null,5,0],
+  ['2026-10-24','1092440033491',55,24,3,0,0,null,3,0.6667],
+  ['2026-10-25','1092440033491',94,24,5,1,0,null,6,0.1667],
+  ['2026-10-26','1092440033491',84,27,5,0,0,null,4,0.25],
+  ['2026-10-27','1092440033491',134,26,5,2,0,null,8,0.375],
+  ['2026-10-28','1092440033491',70,28,4,0,0,null,5,0],
+  ['2026-10-29','1092440033491',66,35,5,0,0,null,6,0.1667],
+  ['2026-10-31','1092440033491',141,39,4,0,8.4,null,11,0],
+  ['2026-11-01','1092440033491',125,34,4,1,13.33,null,5,0],
+  ['2026-11-02','1092440033491',192,61,9,1,41.89,null,8,0.125],
+  ['2026-11-03','1092440033491',236,80,10,0,37.73,null,5,0],
+  ['2026-11-04','1092440033491',202,70,2,0,42.89,null,8,0],
+  ['2026-11-05','1092440033491',181,66,9,1,43.92,null,11,0.2727],
+  ['2026-11-06','1092440033491',777,343,14,2,234.16,null,8,0.125],
+  ['2026-11-07','1092440033491',1113,504,18,0,283.8,null,16,0],
+  ['2026-11-08','1092440033491',606,176,8,3,154.52,null,15,0.2],
+  ['2026-11-09','1092440033491',1092,384,28,4,247.36,null,19,0.4211],
+  ['2026-11-10','1092440033491',1564,597,30,8,371.76,null,36,0.1667],
+  ['2026-11-11','1092440033491',1393,528,24,6,377.47,null,29,0],
+  ['2026-11-12','1092440033491',4241,1729,84,2,986.97,null,31,0.0968],
+  ['2026-11-13','1092440033491',4170,1738,79,2,905.78,null,22,0.0909],
+  ['2026-11-14','1092440033491',4242,1961,53,1,741.51,null,21,0.0952],
+  ['2026-11-15','1092440033491',1898,917,30,1,393.12,null,17,0.1176],
+  ['2026-11-16','1092440033491',2020,990,28,2,420.14,null,14,0.2857],
+  ['2026-11-17','1092440033491',724,320,6,0,105.96,null,21,0],
+  ['2026-11-18','1092440033491',421,209,10,1,83.6,null,16,0.125],
+
+  // ===== 1090113453795 =====
+  ['2026-10-09','1090113453795',33,24,1,0,0,null,4,0],
+  ['2026-10-10','1090113453795',33,25,2,0,0,null,4,0],
+  ['2026-10-11','1090113453795',55,30,4,1,0,null,4,0],
+  ['2026-10-12','1090113453795',59,38,5,0,0,null,4,0.25],
+  ['2026-10-13','1090113453795',45,29,0,0,0,null,2,0],
+  ['2026-10-14','1090113453795',74,32,3,0,0,null,6,0],
+  ['2026-10-16','1090113453795',71,24,4,0,0,null,9,0.1111],
+  ['2026-10-17','1090113453795',79,24,1,0,0,null,9,0],
+  ['2026-10-18','1090113453795',63,24,3,0,0,null,5,0],
+  ['2026-10-19','1090113453795',101,28,4,1,0,null,6,0.1667],
+  ['2026-10-20','1090113453795',127,26,2,1,0,null,10,0.1],
+  ['2026-10-21','1090113453795',168,44,11,1,0,null,14,0.2857],
+  ['2026-10-22','1090113453795',181,58,7,2,0,null,10,0],
+  ['2026-10-23','1090113453795',376,148,9,4,45.16,null,25,0.04],
+  ['2026-10-24','1090113453795',435,225,9,2,50,null,22,0.2273],
+  ['2026-10-25','1090113453795',468,289,10,3,50,null,27,0.1481],
+  ['2026-10-26','1090113453795',495,229,9,4,50,null,24,0.25],
+  ['2026-10-28','1090113453795',775,282,20,3,300,null,33,0.1515],
+  ['2026-10-29','1090113453795',858,535,24,5,142.67,null,39,0.1282],
+  ['2026-10-30','1090113453795',561,175,17,4,152.31,null,33,0.1515],
+  ['2026-10-31','1090113453795',990,386,33,5,293.49,null,38,0.1053],
+  ['2026-11-01','1090113453795',1086,455,40,6,296.31,null,51,0.1765],
+  ['2026-11-02','1090113453795',2003,813,65,4,457.22,null,46,0.1304],
+  ['2026-11-03','1090113453795',1572,589,56,4,351.72,null,46,0.0652],
+  ['2026-11-04','1090113453795',1568,898,31,6,341.73,null,77,0.1169],
+  ['2026-11-05','1090113453795',1780,881,57,5,485.8,null,62,0.1774],
+  ['2026-11-06','1090113453795',2303,926,84,12,600,null,69,0.1014],
+  ['2026-11-07','1090113453795',3247,1357,134,11,996.76,null,70,0.1857],
+  ['2026-11-08','1090113453795',3303,1218,118,14,993.78,null,93,0.0968],
+  ['2026-11-09','1090113453795',5449,1940,224,25,1748.39,null,128,0.1016],
+  ['2026-11-10','1090113453795',5988,1952,235,40,1799.86,null,218,0.1239],
+  ['2026-11-11','1090113453795',5493,1772,188,49,2372.76,null,283,0.1095],
+  ['2026-11-12','1090113453795',5636,2118,200,29,2510.8,null,198,0.1515],
+  ['2026-11-13','1090113453795',6220,2569,236,21,2916.9,null,187,0.1176],
+  ['2026-11-14','1090113453795',6804,2791,260,9,2977.8,null,164,0.0976],
+  ['2026-11-15','1090113453795',4628,1982,156,7,1999.86,null,124,0.0806],
+  ['2026-11-16','1090113453795',6194,2816,199,22,2588.21,null,185,0.0919],
+  ['2026-11-17','1090113453795',6817,2924,189,26,2925.57,null,149,0.0738],
+  ['2026-11-18','1090113453795',6694,2906,227,23,2927.59,null,214,0.1308],
+
+  // ===== 1093309243098 =====
+  ['2026-10-29','1093309243098',57,50,1,0,0,null,6,0.1667],
+  ['2026-10-30','1093309243098',78,31,5,0,0,null,4,0.5],
+  ['2026-10-31','1093309243098',57,45,5,0,0,null,5,0.2],
+  ['2026-11-01','1093309243098',85,51,3,1,0,null,7,0],
+  ['2026-11-02','1093309243098',66,49,4,0,0,null,7,0],
+  ['2026-11-03','1093309243098',56,34,3,0,0,null,7,0],
+  ['2026-11-04','1093309243098',124,46,6,0,0,null,7,0.1429],
+  ['2026-11-05','1093309243098',76,35,3,0,0,null,5,0.2],
+  ['2026-11-06','1093309243098',12,1,0,0,0,null,null,null],
+  ['2026-11-07','1093309243098',7,3,0,0,0,null,null,null],
+  ['2026-11-08','1093309243098',5,2,0,0,0,null,null,null],
+  ['2026-11-09','1093309243098',1,1,0,0,0,null,null,null],
+  ['2026-11-10','1093309243098',1,1,0,0,0,null,null,null],
+  ['2026-11-12','1093309243098',61,30,3,0,5.12,null,8,0.125],
+  ['2026-11-13','1093309243098',172,48,6,1,4.69,null,6,0.3333],
+  ['2026-11-14','1093309243098',234,117,7,0,72.75,null,7,0],
+  ['2026-11-15','1093309243098',2538,1234,35,0,411.04,null,9,0.2222],
+  ['2026-11-16','1093309243098',5431,2574,125,2,919.25,null,9,0.2222],
+  ['2026-11-17','1093309243098',5430,2362,178,3,1128.63,null,15,0],
+  ['2026-11-18','1093309243098',4586,2042,120,4,907.48,null,16,0.0625],
+
+  // ===== 1096389612726 =====
+  ['2026-10-29','1096389612726',48,39,2,0,0,null,6,0.1667],
+  ['2026-10-30','1096389612726',27,24,3,0,0,null,1,0],
+  ['2026-10-31','1096389612726',29,24,1,0,0,null,4,0.25],
+  ['2026-11-01','1096389612726',61,49,4,0,0,null,6,0.1667],
+  ['2026-11-02','1096389612726',73,61,1,0,0,null,5,0],
+  ['2026-11-03','1096389612726',91,48,5,0,0,null,10,0],
+  ['2026-11-04','1096389612726',96,45,7,0,0,null,12,0.25],
+  ['2026-11-05','1096389612726',36,17,0,0,0,null,3,0],
+  ['2026-11-08','1096389612726',1,1,0,0,0,null,null,null],
+  ['2026-11-11','1096389612726',46,18,1,0,0,null,3,0],
+  ['2026-11-12','1096389612726',120,55,5,0,15.21,null,18,0.1111],
+  ['2026-11-13','1096389612726',83,35,4,0,6.24,null,4,0],
+  ['2026-11-14','1096389612726',75,32,4,0,6.93,null,8,0.25],
+  ['2026-11-15','1096389612726',82,43,3,0,17.93,null,5,0.2],
+  ['2026-11-16','1096389612726',171,74,9,3,31.03,null,9,0.2222],
+  ['2026-11-17','1096389612726',195,94,7,1,64.42,null,11,0.0909],
+  ['2026-11-18','1096389612726',229,114,6,1,81.81,null,19,0.1053],
+
+  // ===== 1097850357736 =====
+  ['2026-11-06','1097850357736',76,51,5,0,0,null,14,0.0714],
+  ['2026-11-07','1097850357736',86,70,5,0,0,null,13,0.0769],
+  ['2026-11-08','1097850357736',77,60,4,0,0,null,13,0.0769],
+  ['2026-11-09','1097850357736',139,82,7,0,0,null,13,0.0769],
+  ['2026-11-10','1097850357736',239,84,10,2,0,null,14,0.0714],
+  ['2026-11-11','1097850357736',275,98,19,3,0,null,27,0.1111],
+  ['2026-11-12','1097850357736',353,165,12,1,96.73,null,29,0.1724],
+  ['2026-11-13','1097850357736',391,160,25,3,59.17,null,32,0.3125],
+  ['2026-11-14','1097850357736',421,178,16,3,70.15,null,21,0.0476],
+  ['2026-11-15','1097850357736',431,238,12,1,109.76,null,23,0.087],
+  ['2026-11-16','1097850357736',612,264,20,4,117,null,35,0.2],
+  ['2026-11-17','1097850357736',924,373,27,3,227.56,null,43,0.1163],
+  ['2026-11-18','1097850357736',1100,390,34,4,246.25,null,40,0.15],
+
+  // ===== 1099418480288 =====
+  ['2026-11-08','1099418480288',44,31,3,1,0,null,6,0.3333],
+  ['2026-11-09','1099418480288',91,53,4,1,0,null,14,0.0714],
+  ['2026-11-10','1099418480288',82,49,4,0,0,null,8,0.125],
+  ['2026-11-11','1099418480288',99,52,6,0,0,null,10,0.2],
+  ['2026-11-12','1099418480288',222,55,4,3,18.9,null,19,0.1053],
+  ['2026-11-13','1099418480288',186,62,8,1,35.89,null,10,0.2],
+  ['2026-11-14','1099418480288',208,84,6,1,24.4,null,20,0.05],
+  ['2026-11-15','1099418480288',275,156,6,0,91.04,null,9,0.2222],
+  ['2026-11-16','1099418480288',327,129,6,0,72.97,null,14,0],
+  ['2026-11-17','1099418480288',301,158,7,3,98.96,null,7,0],
+  ['2026-11-18','1099418480288',396,188,4,0,159.73,null,18,0.1111],
+
+  // ===== 1099421520483 =====
+  ['2026-11-08','1099421520483',70,41,4,1,0,null,9,0.1111],
+  ['2026-11-09','1099421520483',79,50,2,1,0,null,13,0],
+  ['2026-11-10','1099421520483',101,61,4,0,0,null,7,0.1429],
+  ['2026-11-11','1099421520483',253,92,8,3,0,null,20,0.15],
+  ['2026-11-12','1099421520483',250,66,7,1,0,null,11,0.0909],
+  ['2026-11-13','1099421520483',206,65,6,0,0,null,17,0.1176],
+  ['2026-11-14','1099421520483',132,53,5,0,0,null,19,0.1579],
+  ['2026-11-15','1099421520483',144,56,5,1,0,null,9,0],
+  ['2026-11-16','1099421520483',155,60,7,0,0,null,11,0.0909],
+  ['2026-11-17','1099421520483',100,57,6,0,0,null,10,0.2],
+  ['2026-11-18','1099421520483',165,48,7,0,0,null,13,0.2308]
+].map(r => ({d:r[0], id:r[1], pv:r[2], uv:r[3], cart:r[4], payer:r[5], cost:r[6], roi:r[7], sv:r[8], sc:r[9]}));
 
 const PRODUCTS = {
   '1090113453795': '巢尔高级感牛奶绒四件套冬季加绒加厚床单被套仿兔毛绒床上用品',
-  '1095012795355': '巢尔冬季加厚保暖牛奶绒四件套珊瑚绒法兰绒被套床单床笠床上用品',
-  '1095739571948': '巢尔高级感牛奶绒仿兔毛绒四件套冬天双面加绒加厚保暖床单被套',
-  '1096452388606': '巢尔加厚牛奶绒四件套冬天高级感加绒加厚床单被套双面保暖套件',
-  '1097439536171': '巢尔冬季加厚保暖牛奶绒四件套珊瑚绒法兰绒被套床单床笠床上用品',
   '1097850357736': '巢尔冬天牛奶绒四件套高级感花边床单被套加绒加厚保暖床上用品',
   '1099418480288': '巢尔轻奢牛奶绒仿兔毛四件套高级感加绒加厚床单被套冬天保暖套件',
-  '1099421520483': '巢尔轻奢牛奶绒仿兔毛四件套高级感加绒加厚床单被套冬天保暖套件'
+  '1099421520483': '巢尔轻奢牛奶绒仿兔毛四件套高级感加绒加厚床单被套冬天保暖套件',
+  '1093309243098': '巢尔高级感牛奶绒四件套冬天双面加厚床单被套加绒保暖床上用品',
+  '1096389612726': '巢尔高级感牛奶绒四件套冬天加厚保暖珊瑚绒床单被套双面加绒套件',
+  '1092440033491': '巢尔仿貂绒四件套冬天加厚保暖牛奶珊瑚绒床单被套高级感床品套件'
 };
 
 const ALL_DATES = [...new Set(RAW.map(r => r.d))].sort();
 const MIN_DATE = ALL_DATES[0], MAX_DATE = ALL_DATES[ALL_DATES.length - 1];
 
-const state = { start: MIN_DATE, end: MAX_DATE, pid: '1096452388606', cmpId: '1090113453795' };
+const state = {
+  start: MIN_DATE,
+  end: MAX_DATE,
+  phase: 'base',
+  pid: '1090113453795',
+  cmpId: '1097850357736'
+};
 
+/* ==================== 工具函数 ==================== */
 const fmtInt   = v => (v || 0).toLocaleString('zh-CN');
 const fmtPct   = v => (v * 100).toFixed(2) + '%';
 const fmtMoney = v => '¥' + (v || 0).toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2});
-const fmtCost  = v => (v === null || !isFinite(v) || v <= 0) ? '—' : '¥' + v.toFixed(2);
 
 function fmtDate(d){
   const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${dd}`;
 }
-function addDays(dstr, n){
-  const [y,m,d] = dstr.split('-').map(Number);
-  const dt = new Date(y, m-1, d);
-  dt.setDate(dt.getDate() + n);
-  return fmtDate(dt);
-}
-function intRange(a, b){
-  const out = [];
-  for (let i = a; i <= b; i++) out.push(i);
-  return out;
+function dailyAvg(rows, fn){
+  const vals = [];
+  rows.forEach(r => {
+    const v = fn(r);
+    if (v !== null && v !== undefined && isFinite(v)) vals.push(v);
+  });
+  if (!vals.length) return null;
+  return vals.reduce((s, v) => s + v, 0) / vals.length;
 }
 
+/* ==================== 阶段判定 ==================== */
 const PHASE_CACHE = {};
 function phaseInfoOf(id){
   if (PHASE_CACHE[id]) return PHASE_CACHE[id];
@@ -335,35 +467,57 @@ function phaseInfoOf(id){
   const map = {};
   if (!rows.length){ PHASE_CACHE[id] = map; return map; }
 
-  let baseIdx = 0, paidIdx = 0;
-  rows.forEach(r => {
-    if (r.cost > 0){
-      paidIdx++;
-      map[r.d] = { phase: 'paid', day: paidIdx };
-    } else {
-      baseIdx++;
-      map[r.d] = { phase: 'base', day: baseIdx };
-    }
-  });
+  const firstPaid = rows.find(r => r.cost > 0);
+  let baseRows = [], paidRows = [];
+
+  if (firstPaid){
+    const before = rows.filter(r => r.d < firstPaid.d && !(r.cost > 0));
+    baseRows = before.slice(0, 5); // 前5天
+    const after = rows.filter(r => r.d >= firstPaid.d);
+    paidRows = after.slice(0, 7);  // 后7天
+  } else {
+    baseRows = rows.slice(0, 5);
+  }
+
+  baseRows.forEach((r, i) => { map[r.d] = {phase:'base', day:i+1}; });
+  paidRows.forEach((r, i) => { map[r.d] = {phase:'paid', day:i+1}; });
+
   PHASE_CACHE[id] = map;
   return map;
 }
 
-const rowGMV  = r => r.cost > 0 ? r.cost * (r.roi || 0) : 0;
+const rowGMV  = r => (r.cost > 0 && r.roi !== null && r.roi !== undefined) ? r.cost * r.roi : null;
 const rowCartRate = r => r.uv ? r.cart / r.uv : 0;
 const rowPayRate  = r => r.uv ? r.payer / r.uv : 0;
-const rowCartCost = r => (r.cost > 0 && r.cart > 0) ? r.cost / r.cart : null;
+const rowPPC      = r => r.uv ? r.cost / r.uv : 0;
 
 function aggregate(rows){
-  const a = {pv:0, uv:0, cart:0, payer:0, cost:0, gmv:0, days:0};
+  const a = {pv:0, uv:0, cart:0, payer:0, cost:0, gmv:0, days:0, searchUv:0};
   rows.forEach(r => {
     a.pv += r.pv; a.uv += r.uv; a.cart += r.cart; a.payer += r.payer;
-    a.cost += r.cost; a.gmv += rowGMV(r); a.days++;
+    a.cost += r.cost; a.gmv += (rowGMV(r) || 0); a.days++;
+    a.searchUv += r.sv || 0;
   });
   a.cartRate = a.uv ? a.cart / a.uv : 0;
   a.payRate  = a.uv ? a.payer / a.uv : 0;
   a.cartCost = (a.cost > 0 && a.cart > 0) ? a.cost / a.cart : null;
   a.roi      = a.cost > 0 ? a.gmv / a.cost : null;
+  a.searchCart = dailyAvg(rows, r => (r.sc !== null && r.sc !== undefined && isFinite(r.sc)) ? r.sc : null);
+  return a;
+}
+
+function aggregatePhase(id, phase, start, end){
+  const map = phaseInfoOf(id);
+  let rows = RAW.filter(r => r.id === id && map[r.d] && map[r.d].phase === phase);
+  if (start) rows = rows.filter(r => r.d >= start);
+  if (end) rows = rows.filter(r => r.d <= end);
+  rows = rows.slice().sort((a, b) => a.d < b.d ? -1 : 1);
+
+  const a = aggregate(rows);
+  a.days = rows.length;
+  a.cartRate = dailyAvg(rows, r => r.uv ? r.cart / r.uv : null);
+  a.payRate  = dailyAvg(rows, r => r.uv ? r.payer / r.uv : null);
+  a.ppc = (a.cost > 0 && a.uv > 0) ? a.cost / a.uv : null;
   return a;
 }
 
@@ -371,6 +525,7 @@ function rowsOf(id){
   return RAW.filter(r => r.id === id && r.d >= state.start && r.d <= state.end);
 }
 
+/* ==================== 图片 ==================== */
 function imgSrcOf(id){
   return PRODUCT_IMAGES[id] || `images/${id}.jpg`;
 }
@@ -407,6 +562,7 @@ function loadImgInto(container, id){
   }
 }
 
+/* ==================== 商品卡片 ==================== */
 function renderProdCard(elId, id, role, cls){
   const el = document.getElementById(elId);
   if (!el) return;
@@ -466,11 +622,11 @@ function bindCombo(elId){
     activeIdx = -1;
   }
 
-  function openPanel(){
+  function openPanel(showAll){
     if (isOpen) return;
     isOpen = true;
     panel.classList.add('open');
-    buildList(inp.value);
+    buildList(showAll ? '' : inp.value);
   }
   function closePanel(){
     isOpen = false;
@@ -493,12 +649,16 @@ function bindCombo(elId){
 
   btn.addEventListener('mousedown', e => e.preventDefault());
   btn.addEventListener('click', () => {
-    if (isOpen){ closePanel(); }
-    else { openPanel(); inp.focus(); }
+    if (isOpen){ 
+      closePanel(); 
+    } else { 
+      inp.value = state[key]; // 重置为当前选中商品，防止触发过滤
+      openPanel(true); 
+    }
   });
 
   inp.addEventListener('input', () => {
-    if (!isOpen) openPanel();
+    if (!isOpen) openPanel(false);
     else buildList(inp.value);
   });
 
@@ -523,7 +683,7 @@ function bindCombo(elId){
       return;
     }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
-      if (!isOpen) openPanel();
+      if (!isOpen) openPanel(false);
       const opts = [...panel.querySelectorAll('.combo-opt')];
       if (!opts.length) return;
       e.preventDefault();
@@ -558,6 +718,7 @@ function renderProducts(){
   renderProdCard('prodCmp', state.cmpId, '对比品',   'cmp');
 }
 
+/* ==================== 图表 ==================== */
 function niceStep(x){
   if (x <= 0) return 1;
   const p = Math.pow(10, Math.floor(Math.log10(x)));
@@ -610,9 +771,21 @@ function drawChart(el, cfg){
   svg += `<line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${pad.t + ih}" stroke="#d9dee8"/>`;
   svg += `<line x1="${pad.l}" y1="${pad.t + ih}" x2="${pad.l + iw}" y2="${pad.t + ih}" stroke="#d9dee8"/>`;
 
-  const skip = Math.max(1, Math.ceil(n / 9));
+  const maxLabels = Math.floor(iw / 50);
+  const showCount = Math.min(n, Math.max(2, maxLabels));
+
+  let showIndices = new Set();
+  if (showCount >= n || n <= 2) {
+    for (let i = 0; i < n; i++) showIndices.add(i);
+  } else {
+    for (let i = 0; i < showCount; i++) {
+      const idx = Math.round(i * (n - 1) / (showCount - 1));
+      showIndices.add(idx);
+    }
+  }
+
   labels.forEach((lb, i) => {
-    if (i % skip !== 0 && i !== n - 1) return;
+    if (!showIndices.has(i)) return;
     const txt = axisLabels[i];
     if (!txt) return;
     svg += `<text x="${xOf(i)}" y="${H - 12}" text-anchor="middle" font-size="10" fill="#98a2b3">${txt}</text>`;
@@ -732,65 +905,175 @@ function legend(el, items, note){
     + (note ? `<span style="margin-left:auto;font-size:11px;color:#98a2b3">${note}</span>` : '');
 }
 
-function renderDiffTable(){
-  const cur = aggregate(rowsOf(state.pid));
-  const cmp = aggregate(rowsOf(state.cmpId));
+/* ==================== 差异分析 ==================== */
+const STANDARDS = {
+  base: [
+    { key:'pv',         name:'浏览量',                fmt:'int'   },
+    { key:'uv',         name:'访客数（合计）',         fmt:'int',   rule:{type:'range', min:30, max:50, perDay:true} },
+    { key:'searchUv',   name:'搜索访客数（合计）',     fmt:'int'   },
+    { key:'cart',       name:'加购人数',              fmt:'int'   },
+    { key:'cartRate',   name:'加购率（日均）',         fmt:'pct',   rule:{type:'min', min:0.10} },
+    { key:'payer',      name:'支付买家数',            fmt:'int',   rule:{type:'focus'} },
+    { key:'payRate',    name:'支付转化率（日均）',     fmt:'pct'   },
+    { key:'cost',       name:'推广消耗',              fmt:'money' },
+    { key:'ppc',        name:'PPC（消耗÷访客数）',     fmt:'money' },
+    { key:'searchCart', name:'搜索加购转化率（日均）', fmt:'pct'   }
+  ],
+  paid: [
+    { key:'pv',         name:'浏览量',                fmt:'int'   },
+    { key:'uv',         name:'访客数（合计）',         fmt:'int',   rule:{type:'range', min:270, max:330, perDay:true} },
+    { key:'searchUv',   name:'搜索访客数（合计）',     fmt:'int'   },
+    { key:'cart',       name:'加购人数',              fmt:'int'   },
+    { key:'cartRate',   name:'加购率（日均）',         fmt:'pct',   rule:{type:'range', min:0.075, max:0.115} },
+    { key:'payer',      name:'支付买家数',            fmt:'int'   },
+    { key:'payRate',    name:'支付转化率（日均）',     fmt:'pct'   },
+    { key:'cost',       name:'推广消耗',              fmt:'money' },
+    { key:'ppc',        name:'PPC（消耗÷访客数）',     fmt:'money', rule:{type:'range', min:0.65, max:1} },
+    { key:'searchCart', name:'搜索加购转化率（日均）', fmt:'pct',   rule:{type:'tier', base:0.12,
+                                                            tiers:[{min:0.15, name:'必打款'}, {min:0.12, name:'动销款'}]} }
+  ]
+};
 
-  const items = [
-    {name:'浏览量',       c:cur.pv,       b:cmp.pv,       f:fmtInt,   good:'up'},
-    {name:'访客数',       c:cur.uv,       b:cmp.uv,       f:fmtInt,   good:'up'},
-    {name:'加购人数',     c:cur.cart,     b:cmp.cart,     f:fmtInt,   good:'up'},
-    {name:'加购率',       c:cur.cartRate, b:cmp.cartRate, f:fmtPct,   good:'up'},
-    {name:'支付买家数',   c:cur.payer,    b:cmp.payer,    f:fmtInt,   good:'up'},
-    {name:'支付转化率',   c:cur.payRate,  b:cmp.payRate,  f:fmtPct,   good:'up'},
-    {name:'推广消耗',     c:cur.cost,     b:cmp.cost,     f:fmtMoney, good:'down'},
-    {name:'推广成交金额', c:cur.gmv,      b:cmp.gmv,      f:fmtMoney, good:'up'},
-    {name:'加购成本',     c:cur.cartCost, b:cmp.cartCost, f:fmtCost,  good:'down'}
-  ];
+const MUTED = '<span class="muted">—</span>';
+
+function fmtVal(v, fmt){
+  if (v === null || v === undefined || !isFinite(v)) return '—';
+  if (fmt === 'pct')   return (v * 100).toFixed(2) + '%';
+  if (fmt === 'money') return '¥' + v.toFixed(2);
+  return Number(v).toLocaleString('zh-CN');
+}
+
+function fmtDiff(d, fmt, ok){
+  const sign = d >= 0 ? '+' : '-';
+  const a = Math.abs(d);
+  const cls = ok ? 'up' : 'down';
+  if (fmt === 'pct')   return `<span class="${cls}">${sign}${(a * 100).toFixed(2)}pp</span>`;
+  if (fmt === 'money') return `<span class="${cls}">${sign}¥${a.toFixed(2)}</span>`;
+  return `<span class="${cls}">${sign}${Number(a).toLocaleString('zh-CN')}</span>`;
+}
+
+function fmtRate(r, ok){
+  if (r === null || r === undefined || !isFinite(r)) return MUTED;
+  const cls = ok ? 'up' : 'down';
+  return `<span class="${cls}">${r >= 0 ? '+' : ''}${(r * 100).toFixed(1)}%</span>`;
+}
+
+function evaluate(it, v, hasV, cur){
+  const out = { std: MUTED, diff: MUTED, rate: MUTED, judge: MUTED };
+  const rule = it.rule;
+  if (!rule) return out;
+  const fmt = it.fmt;
+  const days = (cur && cur.days) ? cur.days : 1;
+
+  if (rule.type === 'range'){
+    let lo, hi, stdText;
+    if (rule.perDay){
+      lo = rule.min * days;
+      hi = rule.max * days;
+      stdText = `合计 ${Number(lo).toLocaleString('zh-CN')}~${Number(hi).toLocaleString('zh-CN')}（日均${fmtVal(rule.min, 'int')}~${fmtVal(rule.max, 'int')}）`;
+    } else {
+      lo = rule.min;
+      hi = rule.max;
+      stdText = `${fmtVal(lo, fmt)} ~ ${fmtVal(hi, fmt)}`;
+    }
+    out.std = stdText;
+    if (!hasV) return out;
+    if (v >= lo && v <= hi){
+      out.diff  = '<span class="muted">区间内</span>';
+      out.judge = '<span class="up">✓ 达标</span>';
+    } else {
+      const bound = v > hi ? hi : lo;
+      const d = v - bound;
+      const r = bound ? v / bound - 1 : null;
+      out.diff  = fmtDiff(d, fmt, false);
+      out.rate  = fmtRate(r, false);
+      out.judge = v > hi
+        ? '<span class="down">▲ 高于标准区间</span>'
+        : '<span class="down">▼ 低于标准区间</span>';
+    }
+    return out;
+  }
+
+  if (rule.type === 'min'){
+    out.std = `≥ ${fmtVal(rule.min, fmt)}`;
+    if (!hasV) return out;
+    const ok = v >= rule.min;
+    out.diff  = fmtDiff(v - rule.min, fmt, ok);
+    out.rate  = fmtRate(rule.min ? v / rule.min - 1 : null, ok);
+    out.judge = ok ? '<span class="up">✓ 达标</span>' : '<span class="down">▼ 未达标</span>';
+    return out;
+  }
+
+  if (rule.type === 'focus'){
+    out.std = '有出单即重点关注';
+    if (!hasV) return out;
+    out.judge = v > 0
+      ? '<span class="up">★ 有出单 · 重点关注</span>'
+      : '<span class="down">▼ 暂无出单</span>';
+    return out;
+  }
+
+  if (rule.type === 'tier'){
+    out.std = '≥15% 必打款 / ≥12% 动销款';
+    if (!hasV) return out;
+    const base = rule.base || 0.12;
+    const ok = v >= base;
+    out.diff = fmtDiff(v - base, 'pct', ok);
+    out.rate = fmtRate(v / base - 1, ok);
+    if (v >= 0.15)      out.judge = '<span class="up">★ 必打款</span>';
+    else if (v >= 0.12) out.judge = '<span class="up">✓ 动销款</span>';
+    else                out.judge = '<span class="down">▼ 未达动销线</span>';
+    return out;
+  }
+
+  return out;
+}
+
+function renderDiffTable(){
+  const phase = state.phase;
+  const phaseName = phase === 'base' ? '基础建设期' : '付费推广期';
+  const cur  = aggregatePhase(state.pid, phase, state.start, state.end);
+  const list = STANDARDS[phase];
+
+  const noteEl = document.getElementById('diffNote');
+  if (noteEl){
+    noteEl.textContent = cur.days > 0
+      ? `${phaseName} · ${state.start} ~ ${state.end} · 共 ${cur.days} 天（受日期筛选控制）`
+      : `${phaseName}在所选日期范围内无数据`;
+  }
 
   let html = `<thead><tr>
-    <th class="l">指标</th><th>当前商品 ${state.pid}</th><th>对比品 ${state.cmpId}</th>
-    <th>差异</th><th>差异率</th><th class="l">判断</th>
+    <th class="l">指标</th>
+    <th>当前商品 ${state.pid}</th>
+    <th>判断标准</th>
+    <th>差异</th>
+    <th>差异率</th>
+    <th class="l">判断</th>
   </tr></thead><tbody>`;
 
-  items.forEach(it => {
-    const hasC = cur.days > 0 && it.c !== null && isFinite(it.c);
-    const hasB = cmp.days > 0 && it.b !== null && isFinite(it.b) && it.b !== 0;
-    const diff = (hasC && hasB) ? it.c - it.b : null;
-    const rate = (hasC && hasB) ? (it.c / it.b - 1) : null;
-
-    let judge = '<span class="muted">—</span>';
-    if (rate !== null && Math.abs(rate) >= 0.05){
-      const better = it.good === 'up' ? rate > 0 : rate < 0;
-      judge = better ? '<span class="up">▲ 优于对比品</span>' : '<span class="down">▼ 弱于对比品</span>';
-    } else if (rate !== null){
-      judge = '<span class="muted">≈ 基本持平</span>';
-    }
-
-    const diffTxt = diff === null ? '<span class="muted">—</span>'
-      : (it.f === fmtInt ? (diff >= 0 ? '+' : '') + Math.round(diff).toLocaleString('zh-CN')
-        : it.f === fmtPct ? (diff >= 0 ? '+' : '') + (diff * 100).toFixed(2) + 'pp'
-        : (diff >= 0 ? '+' : '-') + '¥' + Math.abs(diff).toFixed(2));
-    const rateTxt = rate === null ? '<span class="muted">—</span>'
-      : `<span class="${rate >= 0 ? 'up' : 'down'}">${(rate >= 0 ? '+' : '') + (rate * 100).toFixed(1)}%</span>`;
-
-    html += `<tr>
-      <td class="l">${it.name}</td>
-      <td>${hasC ? it.f(it.c) : '<span class="muted">—</span>'}</td>
-      <td>${hasB ? it.f(it.b) : '<span class="muted">—</span>'}</td>
-      <td>${diffTxt}</td>
-      <td>${rateTxt}</td>
-      <td class="l">${judge}</td>
-    </tr>`;
-  });
+  if (cur.days === 0){
+    html += `<tr><td colspan="6" class="empty">该商品在${phaseName}所选日期范围内暂无数据</td></tr>`;
+  } else {
+    list.forEach(it => {
+      const v = cur[it.key];
+      const hasV = v !== null && v !== undefined && isFinite(v);
+      const c = evaluate(it, v, hasV, cur);
+      html += `<tr>
+        <td class="l">${it.name}</td>
+        <td>${hasV ? fmtVal(v, it.fmt) : MUTED}</td>
+        <td>${c.std}</td>
+        <td>${c.diff}</td>
+        <td>${c.rate}</td>
+        <td class="l">${c.judge}</td>
+      </tr>`;
+    });
+  }
 
   html += '</tbody>';
   document.getElementById('diffTable').innerHTML = html;
 }
 
-/* ============================================================
-   图表渲染（支持每个图表独立筛选阶段）
-   ============================================================ */
+/* ==================== 趋势图渲染 ==================== */
 function renderCharts(){
   const curInfo = phaseInfoOf(state.pid);
   const cmpInfo = phaseInfoOf(state.cmpId);
@@ -807,73 +1090,77 @@ function renderCharts(){
     (p.phase === 'base' ? cmpBase : cmpPaid)[p.day] = r;
   });
 
-  const curBaseMax = Math.max(0, ...Object.keys(curBase).map(Number));
-  const cmpBaseMax = Math.max(0, ...Object.keys(cmpBase).map(Number));
-  const baseMax = Math.max(curBaseMax, cmpBaseMax);
-
-  const curPaidMax = Math.max(0, ...Object.keys(curPaid).map(Number));
-  const cmpPaidMax = Math.max(0, ...Object.keys(cmpPaid).map(Number));
-  const paidMax = Math.max(curPaidMax, cmpPaidMax);
+  // 改为从筛选后的数据中提取当前存在的天数，确保图表跟随日期筛选联动
+  const baseDays = new Set([...Object.keys(curBase).map(Number), ...Object.keys(cmpBase).map(Number)]);
+  const paidDays = new Set([...Object.keys(curPaid).map(Number), ...Object.keys(cmpPaid).map(Number)]);
+  const baseArr = [...baseDays].sort((a, b) => a - b);
+  const paidArr = [...paidDays].sort((a, b) => a - b);
 
   const C_CUR = '#4f46e5', C_CMP = '#f59e0b';
 
-  // 根据下拉筛选生成图表坐标系
-  function getChartConfig(filterType) {
+  function getChartConfig(filterType){
     let points = [];
     if (filterType === 'all') {
       points = [
-        ...intRange(1, baseMax).map(d => ({phase: 'base', day: d})),
-        ...intRange(1, paidMax).map(d => ({phase: 'paid', day: d}))
+        ...baseArr.map(d => ({phase: 'base', day: d})),
+        ...paidArr.map(d => ({phase: 'paid', day: d}))
       ];
     } else if (filterType === 'base') {
-      points = intRange(1, baseMax).map(d => ({phase: 'base', day: d}));
+      points = baseArr.map(d => ({phase: 'base', day: d}));
     } else if (filterType === 'paid') {
-      points = intRange(1, paidMax).map(d => ({phase: 'paid', day: d}));
+      points = paidArr.map(d => ({phase: 'paid', day: d}));
     }
 
     const axisLabels = points.map(p => p.phase === 'base' ? '基础' + p.day : '付费' + p.day);
     const phaseFull  = points.map(p => p.phase === 'base' ? '基础建设期第' + p.day + '天' : '付费推广期第' + p.day + '天');
-    
-    let note = 'X轴：按阶段第N天对齐 · 缺失按0计';
-    if (filterType === 'base') note = 'X轴：仅基础建设期 · 缺失按0计';
-    if (filterType === 'paid') note = 'X轴：仅付费推广期 · 缺失按0计';
+
+    let note = 'X轴：按阶段第N天对齐 · 缺失日期跳过';
+    if (filterType === 'base') note = 'X轴：仅基础建设期 · 缺失日期跳过';
+    if (filterType === 'paid') note = 'X轴：仅付费推广期 · 缺失日期跳过';
 
     return { points, axisLabels, phaseFull, note };
   }
 
-  function pickData(points, mapBase, mapPaid, key) {
+  function pickData(points, mapBase, mapPaid, key, id){
     return points.map(p => {
       const r = p.phase === 'base' ? mapBase[p.day] : mapPaid[p.day];
       if (!r) return 0;
-      if (key === 'payRate')  return r.uv ? r.payer / r.uv : 0;
-      if (key === 'cartRate') return r.uv ? r.cart  / r.uv : 0;
+      if (key === 'payRate')    return r.uv ? r.payer / r.uv : 0;
+      if (key === 'cartRate')   return r.uv ? r.cart  / r.uv : 0;
+      if (key === 'ppc')        return r.uv ? r.cost  / r.uv : 0;
+      if (key === 'searchCart'){
+        return (r.sc === null || r.sc === undefined || !isFinite(r.sc)) ? 0 : r.sc;
+      }
       return r[key] || 0;
     });
   }
 
-  // 通用渲染函数
-  function renderSingleChart(chartId, legendId, filterId, type, key, fmtY) {
+  function renderSingleChart(chartId, legendId, filterId, type, key, fmtY){
     const filterType = document.getElementById(filterId).value;
     const cfg = getChartConfig(filterType);
-    
-    legend(document.getElementById(legendId), [{name:'当前商品', color:C_CUR}, {name:'对比品', color:C_CMP}], cfg.note);
-    
+
+    legend(document.getElementById(legendId),
+      [{name:'当前商品', color:C_CUR}, {name:'对比品', color:C_CMP}], cfg.note);
+
     drawChart(document.getElementById(chartId), {
       labels: cfg.axisLabels, axisLabels: cfg.axisLabels, phaseFull: cfg.phaseFull, type: type,
       series: [
-        {name:'当前商品', color:C_CUR, data: pickData(cfg.points, curBase, curPaid, key)},
-        {name:'对比品',   color:C_CMP, data: pickData(cfg.points, cmpBase, cmpPaid, key), dash:true}
+        {name:'当前商品', color:C_CUR, data: pickData(cfg.points, curBase, curPaid, key, state.pid)},
+        {name:'对比品',   color:C_CMP, data: pickData(cfg.points, cmpBase, cmpPaid, key, state.cmpId), dash:true}
       ],
       fmtY: fmtY
     });
   }
 
-  renderSingleChart('chart1', 'lg1', 'filter1', 'line', 'uv', v => Math.round(v).toLocaleString('zh-CN'));
-  renderSingleChart('chart2', 'lg2', 'filter2', 'line', 'cartRate', v => (v * 100).toFixed(1) + '%');
-  renderSingleChart('chart3', 'lg3', 'filter3', 'bar', 'cost', v => '¥' + Math.round(v).toLocaleString('zh-CN'));
-  renderSingleChart('chart4', 'lg4', 'filter4', 'line', 'payRate', v => (v * 100).toFixed(1) + '%');
+  renderSingleChart('chart1', 'lg1', 'filter1', 'line', 'uv',         v => Math.round(v).toLocaleString('zh-CN'));
+  renderSingleChart('chart2', 'lg2', 'filter2', 'line', 'cartRate',   v => (v * 100).toFixed(1) + '%');
+  renderSingleChart('chart3', 'lg3', 'filter3', 'bar',  'cost',       v => '¥' + Math.round(v).toLocaleString('zh-CN'));
+  renderSingleChart('chart4', 'lg4', 'filter4', 'line', 'payRate',    v => (v * 100).toFixed(1) + '%');
+  renderSingleChart('chart5', 'lg5', 'filter5', 'line', 'ppc',        v => '¥' + v.toFixed(2));
+  renderSingleChart('chart6', 'lg6', 'filter6', 'line', 'searchCart', v => (v * 100).toFixed(1) + '%');
 }
 
+/* ==================== 分日明细 ==================== */
 function renderDetail(){
   const rows = rowsOf(state.pid).slice().sort((a, b) => a.d < b.d ? 1 : -1);
   const phaseMap = phaseInfoOf(state.pid);
@@ -883,42 +1170,45 @@ function renderDetail(){
     <th class="l">商品ID</th>
     <th>浏览量</th>
     <th>访客数</th>
+    <th>搜索访客数</th>
     <th>加购人数</th>
     <th>加购率</th>
     <th>支付买家数</th>
     <th>支付转化率</th>
     <th>推广消耗</th>
-    <th>推广点击量</th>
+    <th>PPC</th>
+    <th>搜索加购转化率</th>
     <th>推广成交金额</th>
-    <th>加购成本</th>
     <th class="l">阶段</th>
   </tr></thead><tbody>`;
 
   if (rows.length === 0){
-    html += `<tr><td colspan="13" class="empty">该商品在所选日期区间内无数据</td></tr>`;
+    html += `<tr><td colspan="14" class="empty">该商品在所选日期区间内无数据</td></tr>`;
   }
 
   rows.forEach(r => {
     const ph       = phaseMap[r.d] || {};
     const isPaid   = ph.phase === 'paid';
     const paidCost = r.cost > 0;
+    const gmv      = rowGMV(r);
 
     html += `<tr>
       <td class="l">${r.d}</td>
       <td class="l">${r.id}</td>
       <td>${fmtInt(r.pv)}</td>
       <td>${fmtInt(r.uv)}</td>
+      <td>${(r.sv === null || r.sv === undefined) ? '<span class="muted">—</span>' : fmtInt(r.sv)}</td>
       <td>${fmtInt(r.cart)}</td>
       <td>${fmtPct(rowCartRate(r))}</td>
       <td>${fmtInt(r.payer)}</td>
       <td>${fmtPct(rowPayRate(r))}</td>
       <td>${paidCost ? fmtMoney(r.cost) : '<span class="muted">¥0.00</span>'}</td>
-      <td class="muted">—</td>
-      <td>${paidCost ? fmtMoney(rowGMV(r)) : '<span class="muted">—</span>'}</td>
-      <td>${fmtCost(rowCartCost(r))}</td>
+      <td>${paidCost ? '¥' + rowPPC(r).toFixed(2) : '<span class="muted">—</span>'}</td>
+      <td>${(r.sc === null || r.sc === undefined) ? '<span class="muted">—</span>' : fmtPct(r.sc)}</td>
+      <td>${paidCost ? (gmv === null ? '<span class="muted">—</span>' : fmtMoney(gmv)) : '<span class="muted">—</span>'}</td>
       <td class="l">
-        <span class="badge ${isPaid ? 'paid' : 'base'}">${isPaid ? '付费推广期' : '基础建设期'}</span>
-        <span class="muted" style="font-size:11px;margin-left:4px">第${ph.day || '?'}天</span>
+        ${ph.phase ? `<span class="badge ${isPaid ? 'paid' : 'base'}">${isPaid ? '付费推广期' : '基础建设期'}</span>
+        <span class="muted" style="font-size:11px;margin-left:4px">第${ph.day}天</span>` : '<span class="muted">—</span>'}
       </td>
     </tr>`;
   });
@@ -927,8 +1217,32 @@ function renderDetail(){
   document.getElementById('detailTable').innerHTML = html;
 }
 
+/* ==================== 日期边界 ==================== */
+function availableRange(){
+  const ids = [state.pid, state.cmpId];
+  const set = new Set();
+  RAW.forEach(r => { if (ids.includes(r.id)) set.add(r.d); });
+  const arr = [...set].sort();
+  return arr.length ? {min: arr[0], max: arr[arr.length - 1]} : {min: MIN_DATE, max: MAX_DATE};
+}
+
+function syncDateBounds(){
+  const {min, max} = availableRange();
+  const si = document.getElementById('startDate');
+  const ei = document.getElementById('endDate');
+  si.min = min; si.max = max;
+  ei.min = min; ei.max = max;
+  if (state.start < min || state.start > max) state.start = min;
+  if (state.end   < min || state.end   > max) state.end   = max;
+  if (state.start > state.end) state.start = state.end;
+  si.value = state.start;
+  ei.value = state.end;
+}
+
+/* ==================== 主渲染 ==================== */
 function render(){
   renderProducts();
+  syncDateBounds();
   renderDiffTable();
   renderCharts();
   renderDetail();
@@ -937,45 +1251,32 @@ function render(){
 function init(){
   const si = document.getElementById('startDate');
   const ei = document.getElementById('endDate');
-  [si, ei].forEach(el => { el.min = MIN_DATE; el.max = MAX_DATE; });
-  si.value = state.start;
-  ei.value = state.end;
 
   si.addEventListener('change', () => {
     if (!si.value) return;
     state.start = si.value > state.end ? state.end : si.value;
     si.value = state.start;
-    markQuick(null);
     render();
   });
   ei.addEventListener('change', () => {
     if (!ei.value) return;
     state.end = ei.value < state.start ? state.start : ei.value;
     ei.value = state.end;
-    markQuick(null);
     render();
   });
 
-  document.querySelectorAll('.quick button').forEach(btn => {
+  document.querySelectorAll('#phaseSwitch button').forEach(btn => {
     btn.addEventListener('click', () => {
-      const days = Number(btn.dataset.days);
-      if (days === 0){
-        state.start = MIN_DATE; state.end = MAX_DATE;
-      } else {
-        state.start = addDays(MAX_DATE, -(days - 1));
-        if (state.start < MIN_DATE) state.start = MIN_DATE;
-        state.end = MAX_DATE;
-      }
-      si.value = state.start;
-      ei.value = state.end;
-      markQuick(btn);
-      render();
+      document.querySelectorAll('#phaseSwitch button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      state.phase = btn.dataset.phase;
+      renderDiffTable();
     });
   });
 
-  // 绑定图表独立筛选事件
-  [1, 2, 3, 4].forEach(i => {
-    document.getElementById('filter' + i).addEventListener('change', renderCharts);
+  [1, 2, 3, 4, 5, 6].forEach(i => {
+    const el = document.getElementById('filter' + i);
+    if (el) el.addEventListener('change', renderCharts);
   });
 
   let t = null;
@@ -985,11 +1286,6 @@ function init(){
   });
 
   render();
-}
-
-function markQuick(activeBtn){
-  document.querySelectorAll('.quick button').forEach(b => b.classList.remove('on'));
-  if (activeBtn) activeBtn.classList.add('on');
 }
 
 init();
